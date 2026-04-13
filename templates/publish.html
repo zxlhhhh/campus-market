@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}发布商品 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.publish-page { display:flex; justify-content:center; padding:28px 20px; }
+.publish-card { background:var(--card); padding:36px; border-radius:16px; width:100%; max-width:640px; box-shadow:var(--shadow-lg); }
+.publish-card h2 { font-size:24px; font-weight:900; margin-bottom:28px; letter-spacing:-0.5px; }
+.row-2 { display:flex; gap:14px; }
+.row-2 .form-group { flex:1; }
+.upload-zone { border:2px dashed var(--border); border-radius:12px; padding:28px; text-align:center; cursor:pointer; transition:all .2s; position:relative; }
+.upload-zone:hover { border-color:var(--primary); background:var(--primary-light); }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.upload-zone .icon { font-size:36px; margin-bottom:8px; }
+.upload-zone p { font-size:14px; color:var(--text-secondary); }
+.upload-zone small { font-size:12px; color:#9ca3af; }
+.preview-grid { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.preview-item { width:100px; height:100px; border-radius:10px; overflow:hidden; position:relative; border:2px solid var(--border); }
+.preview-item img { width:100%; height:100%; object-fit:cover; }
+.preview-item .remove-btn { position:absolute; top:2px; right:2px; width:22px; height:22px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; }
+.publish-card .btn { width:100%; padding:14px; font-size:16px; margin-top:10px; justify-content:center; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="publish-page">
+    <div class="publish-card">
+        <h2>发布闲置</h2>
+        <form method="post" enctype="multipart/form-data" id="publishForm">
+            <div class="form-group"><label>商品标题</label><input name="title" required placeholder="简短描述你的商品，如：高等数学第七版"></div>
+            <div class="form-group"><label>详细描述</label><textarea name="description" rows="4" placeholder="商品的详细信息、使用情况、瑕疵说明等"></textarea></div>
+            <div class="row-2">
+                <div class="form-group"><label>出售价格（元）</label><input name="price" type="number" step="0.01" min="0" required placeholder="0.00"></div>
+                <div class="form-group"><label>原价（选填）</label><input name="original_price" type="number" step="0.01" min="0" placeholder="0.00"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group">
+                    <label>分类</label>
+                    <select name="category" required>
+                        <option value="">请选择分类</option>
+                        {% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>成色</label>
+                    <select name="condition">
+                        <option>全新</option><option selected>九成新</option><option>八成新</option><option>七成新</option><option>六成新及以下</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>商品图片（最多5张）</label>
+                <div class="upload-zone" id="uploadZone">
+                    <div class="icon">📸</div>
+                    <p>点击或拖拽上传图片</p>
+                    <small>支持 jpg / png / gif，单张不超过 5MB</small>
+                    <input type="file" name="images" multiple accept="image/*" id="imageInput">
+                </div>
+                <div class="preview-grid" id="previewGrid"></div>
+            </div>
+            <button class="btn btn-primary" type="submit">发布商品</button>
+        </form>
+    </div>
+</div>
+<script>
+const input = document.getElementById('imageInput');
+const grid = document.getElementById('previewGrid');
+const dt = new DataTransfer();
+
+input.addEventListener('change', function() {
+    for (let f of this.files) {
+        if (dt.files.length >= 5) break;
+        dt.items.add(f);
+    }
+    input.files = dt.files;
+    renderPreviews();
+});
+
+function renderPreviews() {
+    grid.innerHTML = '';
+    Array.from(dt.files).forEach((file, i) => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'remove-btn';
+        btn.textContent = '×';
+        btn.onclick = () => { removeFile(i); };
+        div.appendChild(img);
+        div.appendChild(btn);
+        grid.appendChild(div);
+    });
+}
+
+function removeFile(index) {
+    const newDt = new DataTransfer();
+    Array.from(dt.files).forEach((f, i) => { if (i !== index) newDt.items.add(f); });
+    dt.items.clear();
+    Array.from(newDt.files).forEach(f => dt.items.add(f));
+    input.files = dt.files;
+    renderPreviews();
+}
+</script>
+{% endblock %}

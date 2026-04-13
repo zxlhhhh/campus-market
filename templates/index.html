@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}校园二手集市{% endblock %}
+{% block extra_css %}
+<style>
+.hero { background:linear-gradient(135deg, #ff5722 0%, #ff9800 50%, #ffb74d 100%); padding:40px 20px; text-align:center; position:relative; overflow:hidden; }
+.hero::before { content:""; position:absolute; top:-50%; right:-20%; width:400px; height:400px; background:rgba(255,255,255,0.08); border-radius:50%; }
+.hero::after { content:""; position:absolute; bottom:-30%; left:-10%; width:300px; height:300px; background:rgba(255,255,255,0.05); border-radius:50%; }
+.hero h1 { font-size:32px; font-weight:900; color:#fff; margin-bottom:8px; letter-spacing:-1px; position:relative; }
+.hero p { color:rgba(255,255,255,0.9); font-size:15px; position:relative; }
+.search-bar { max-width:560px; margin:20px auto 0; display:flex; gap:0; position:relative; z-index:1; }
+.search-bar input { flex:1; padding:14px 20px; border:none; border-radius:12px 0 0 12px; font-size:15px; outline:none; }
+.search-bar button { padding:14px 28px; background:var(--text); color:#fff; border:none; border-radius:0 12px 12px 0; font-weight:600; cursor:pointer; font-size:14px; }
+
+.filter-bar { max-width:1200px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.categories { display:flex; gap:8px; flex-wrap:wrap; }
+.cat-tag { padding:7px 18px; border-radius:20px; font-size:13px; text-decoration:none; color:var(--text-secondary); background:var(--card); border:1.5px solid var(--border); transition:all .2s; font-weight:500; }
+.cat-tag:hover, .cat-tag.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.sort-select { padding:7px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; outline:none; background:var(--card); cursor:pointer; }
+
+.items-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:18px; }
+.item-card { text-decoration:none; color:inherit; }
+.item-card .img-wrap { width:100%; aspect-ratio:1; background:#f3f4f6; overflow:hidden; position:relative; }
+.item-card .img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+.item-card:hover .img-wrap img { transform:scale(1.05); }
+.item-card .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:42px; }
+.item-card .fav-count { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.6); color:#fff; font-size:11px; padding:3px 8px; border-radius:6px; backdrop-filter:blur(4px); }
+.item-card .info { padding:14px; }
+.item-card .info h3 { font-size:14px; font-weight:500; margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-card .price-row { display:flex; align-items:baseline; gap:6px; }
+.item-card .price { color:var(--primary); font-size:20px; font-weight:900; }
+.item-card .original { color:var(--text-secondary); font-size:12px; text-decoration:line-through; }
+.item-card .meta { font-size:12px; color:var(--text-secondary); margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="hero">
+    <h1>校园二手集市</h1>
+    <p>买卖闲置，就在校园集市</p>
+    <div class="search-bar">
+        <form action="/" method="get" style="display:flex;width:100%">
+            <input type="text" name="search" placeholder="搜索你想要的宝贝..." value="{{ search }}">
+            <button type="submit">搜索</button>
+        </form>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <div class="categories">
+        <a href="/" class="cat-tag {% if not current_category %}active{% endif %}">全部</a>
+        {% for cat in categories %}
+        <a href="/?category={{ cat }}" class="cat-tag {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+        {% endfor %}
+    </div>
+    <select class="sort-select" onchange="location.href='/?sort='+this.value+'{% if current_category %}&category={{ current_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}'">
+        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>最新发布</option>
+        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+        <option value="popular" {% if sort == 'popular' %}selected{% endif %}>最多浏览</option>
+    </select>
+</div>
+
+<div class="container">
+    {% if items %}
+    <div class="items-grid">
+        {% for item in items %}
+        <a href="{{ url_for('item_detail', item_id=item.id) }}" class="item-card card">
+            <div class="img-wrap">
+                {% if item.images %}
+                <img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" alt="{{ item.title }}" loading="lazy">
+                {% else %}
+                <div class="no-img">📦</div>
+                {% endif %}
+                {% if item.favorite_count %}
+                <div class="fav-count">❤ {{ item.favorite_count }}</div>
+                {% endif %}
+            </div>
+            <div class="info">
+                <h3>{{ item.title }}</h3>
+                <div class="price-row">
+                    <span class="price">¥{{ "%.0f"|format(item.price) }}</span>
+                    {% if item.original_price %}<span class="original">¥{{ "%.0f"|format(item.original_price) }}</span>{% endif %}
+                </div>
+                <div class="meta">
+                    <span>{{ item.seller.username }} · {{ item.condition }}</span>
+                    <span>{{ item.views }}浏览</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">📭</div>
+        <p>暂无商品{% if search %}（搜索"{{ search }}"无结果）{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

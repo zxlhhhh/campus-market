@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}我的收藏 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.page-header h2 { font-size:22px; font-weight:900; margin-bottom:20px; }
+.items-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:18px; }
+.item-card { text-decoration:none; color:inherit; }
+.item-card .img-wrap { width:100%; aspect-ratio:1; background:#f3f4f6; overflow:hidden; }
+.item-card .img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+.item-card:hover .img-wrap img { transform:scale(1.05); }
+.item-card .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:42px; }
+.item-card .info { padding:14px; }
+.item-card .info h3 { font-size:14px; font-weight:500; margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-card .price { color:var(--primary); font-size:20px; font-weight:900; }
+.item-card .meta { font-size:12px; color:var(--text-secondary); margin-top:8px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header"><h2>我的收藏</h2></div>
+    {% if items %}
+    <div class="items-grid">
+        {% for item in items %}
+        <a href="{{ url_for('item_detail', item_id=item.id) }}" class="item-card card">
+            <div class="img-wrap">
+                {% if item.images %}<img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" loading="lazy">
+                {% else %}<div class="no-img">📦</div>{% endif %}
+            </div>
+            <div class="info">
+                <h3>{{ item.title }}</h3>
+                <div class="price">¥{{ "%.0f"|format(item.price) }}</div>
+                <div class="meta">{{ item.seller.username }} · {{ item.condition }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">💝</div><p>还没有收藏任何商品</p>
+        <a href="/" class="btn btn-primary" style="margin-top:16px;">去逛逛</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

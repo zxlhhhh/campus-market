@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}编辑资料 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.edit-page { display:flex; justify-content:center; padding:28px 20px; }
+.edit-card { background:var(--card); padding:36px; border-radius:16px; width:100%; max-width:500px; box-shadow:var(--shadow-lg); }
+.edit-card h2 { font-size:22px; font-weight:900; margin-bottom:28px; }
+.avatar-upload { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.avatar-preview { width:72px; height:72px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; overflow:hidden; flex-shrink:0; }
+.avatar-preview img { width:100%; height:100%; object-fit:cover; }
+.avatar-upload .upload-btn { position:relative; }
+.avatar-upload .upload-btn input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.edit-card .btn { width:100%; padding:14px; font-size:16px; margin-top:10px; justify-content:center; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="edit-page">
+    <div class="edit-card">
+        <h2>编辑资料</h2>
+        <form method="post" enctype="multipart/form-data">
+            <div class="avatar-upload">
+                <div class="avatar-preview" id="avatarPreview">
+                    {% if current_user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" id="avatarImg">
+                    {% else %}
+                    <span id="avatarText">{{ current_user.username[0] }}</span>
+                    {% endif %}
+                </div>
+                <div class="upload-btn">
+                    <button type="button" class="btn btn-outline btn-sm">更换头像</button>
+                    <input type="file" name="avatar" accept="image/*" onchange="previewAvatar(this)">
+                </div>
+            </div>
+            <div class="form-group"><label>用户名</label><input name="username" value="{{ current_user.username }}"></div>
+            <div class="form-group"><label>学校</label><input name="campus" value="{{ current_user.campus }}" placeholder="填写你的学校"></div>
+            <div class="form-group"><label>个人简介</label><textarea name="bio" rows="3" placeholder="介绍一下自己吧">{{ current_user.bio }}</textarea></div>
+            <button class="btn btn-primary" type="submit">保存</button>
+        </form>
+    </div>
+</div>
+<script>
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('avatarPreview');
+            preview.innerHTML = '<img src="' + e.target.result + '">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

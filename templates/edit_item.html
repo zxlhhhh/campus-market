@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}编辑商品 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.publish-page { display:flex; justify-content:center; padding:28px 20px; }
+.publish-card { background:var(--card); padding:36px; border-radius:16px; width:100%; max-width:640px; box-shadow:var(--shadow-lg); }
+.publish-card h2 { font-size:24px; font-weight:900; margin-bottom:28px; }
+.row-2 { display:flex; gap:14px; }
+.row-2 .form-group { flex:1; }
+.existing-images { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.existing-img { width:100px; height:100px; border-radius:10px; overflow:hidden; position:relative; border:2px solid var(--border); }
+.existing-img img { width:100%; height:100%; object-fit:cover; }
+.existing-img .remove-check { position:absolute; top:4px; right:4px; }
+.existing-img label { position:absolute; inset:0; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0); transition:all .2s; }
+.existing-img input:checked + label { background:rgba(239,68,68,0.5); }
+.existing-img input:checked + label::after { content:"已移除"; color:#fff; font-size:12px; font-weight:700; }
+.existing-img input { display:none; }
+.upload-zone { border:2px dashed var(--border); border-radius:12px; padding:20px; text-align:center; cursor:pointer; transition:all .2s; position:relative; }
+.upload-zone:hover { border-color:var(--primary); background:var(--primary-light); }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.preview-grid { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+.preview-item { width:100px; height:100px; border-radius:10px; overflow:hidden; position:relative; border:2px solid var(--border); }
+.preview-item img { width:100%; height:100%; object-fit:cover; }
+.preview-item .remove-btn { position:absolute; top:2px; right:2px; width:22px; height:22px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; }
+.publish-card .btn { width:100%; padding:14px; font-size:16px; margin-top:10px; justify-content:center; }
+.btn-row { display:flex; gap:10px; margin-top:10px; }
+.btn-row .btn { flex:1; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="publish-page">
+    <div class="publish-card">
+        <h2>编辑商品</h2>
+        <form method="post" enctype="multipart/form-data" id="editForm">
+            <div class="form-group"><label>商品标题</label><input name="title" required value="{{ item.title }}"></div>
+            <div class="form-group"><label>详细描述</label><textarea name="description" rows="4">{{ item.description }}</textarea></div>
+            <div class="row-2">
+                <div class="form-group"><label>出售价格（元）</label><input name="price" type="number" step="0.01" min="0" required value="{{ item.price }}"></div>
+                <div class="form-group"><label>原价（选填）</label><input name="original_price" type="number" step="0.01" min="0" value="{{ item.original_price }}"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group">
+                    <label>分类</label>
+                    <select name="category" required>
+                        {% for cat in categories %}<option value="{{ cat }}" {% if item.category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>成色</label>
+                    <select name="condition">
+                        {% for c in ["全新","九成新","八成新","七成新","六成新及以下"] %}
+                        <option {% if item.condition == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>现有图片（取消勾选可保留）</label>
+                <div class="existing-images">
+                    {% for img in item.images.split(',') if img %}
+                    <div class="existing-img">
+                        <img src="{{ url_for('static', filename='uploads/' + img) }}">
+                        <input type="checkbox" name="keep_images" value="{{ img }}" id="keep_{{ loop.index }}" checked>
+                        <label for="keep_{{ loop.index }}"></label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <label>上传新图片</label>
+                <div class="upload-zone">
+                    <p>📸 点击上传新图片</p>
+                    <input type="file" name="images" multiple accept="image/*" id="imageInput">
+                </div>
+                <div class="preview-grid" id="previewGrid"></div>
+            </div>
+            <div class="btn-row">
+                <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-gray" style="justify-content:center;">取消</a>
+                <button class="btn btn-primary" type="submit" style="justify-content:center;">保存修改</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+const input = document.getElementById('imageInput');
+const grid = document.getElementById('previewGrid');
+input.addEventListener('change', function() {
+    grid.innerHTML = '';
+    Array.from(this.files).forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        div.appendChild(img);
+        grid.appendChild(div);
+    });
+});
+</script>
+{% endblock %}

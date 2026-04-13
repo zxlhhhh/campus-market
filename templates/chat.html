@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}与{{ other_user.username }}聊天 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.chat-page { max-width:640px; margin:0 auto; padding:20px; }
+.chat-card { background:var(--card); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-lg); }
+.chat-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+.chat-header .avatar { width:40px; height:40px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; }
+.chat-header .name { font-weight:600; font-size:15px; }
+.chat-item-ref { background:#fff7ed; padding:10px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+.chat-body { padding:20px; min-height:400px; max-height:500px; overflow-y:auto; }
+.msg { margin-bottom:14px; display:flex; }
+.msg.sent { justify-content:flex-end; }
+.msg .bubble { max-width:72%; padding:12px 16px; border-radius:14px; font-size:14px; line-height:1.6; }
+.msg.received .bubble { background:#f3f4f6; border-bottom-left-radius:4px; }
+.msg.sent .bubble { background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
+.msg .time { font-size:11px; color:var(--text-secondary); margin-top:4px; }
+.chat-input { padding:14px 20px; border-top:1px solid var(--border); }
+.chat-input form { display:flex; gap:10px; }
+.chat-input input { flex:1; padding:12px 16px; border:1.5px solid var(--border); border-radius:10px; outline:none; font-size:14px; font-family:inherit; }
+.chat-input input:focus { border-color:var(--primary); }
+.chat-input button { padding:12px 28px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-family:inherit; font-size:14px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="chat-page">
+    <div class="chat-card">
+        <div class="chat-header">
+            <div class="avatar">{{ other_user.username[0] }}</div>
+            <div class="name">{{ other_user.username }}</div>
+        </div>
+        {% if item %}
+        <div class="chat-item-ref">📦 <a href="{{ url_for('item_detail', item_id=item.id) }}" style="color:inherit;text-decoration:none;">{{ item.title }} — ¥{{ "%.0f"|format(item.price) }}</a></div>
+        {% endif %}
+        <div class="chat-body" id="chatBody">
+            {% for msg in messages %}
+            <div class="msg {% if msg.sender_id == current_user.id %}sent{% else %}received{% endif %}">
+                <div>
+                    <div class="bubble">{{ msg.content }}</div>
+                    <div class="time" style="text-align:{% if msg.sender_id == current_user.id %}right{% else %}left{% endif %}">{{ msg.created_at.strftime('%H:%M') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not messages %}
+            <div style="text-align:center;color:var(--text-secondary);padding:60px 20px;font-size:14px;">开始和 {{ other_user.username }} 聊天吧 👋</div>
+            {% endif %}
+        </div>
+        <div class="chat-input">
+            <form method="post" action="{{ url_for('send_message') }}">
+                <input type="hidden" name="receiver_id" value="{{ other_user.id }}">
+                <input type="hidden" name="item_id" value="{{ item.id if item else 0 }}">
+                <input name="content" placeholder="输入消息..." required autocomplete="off">
+                <button type="submit">发送</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>var cb=document.getElementById('chatBody');cb.scrollTop=cb.scrollHeight;</script>
+{% endblock %}

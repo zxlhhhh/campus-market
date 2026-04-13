@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }}的主页 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.profile-page { max-width:800px; margin:0 auto; padding:20px; }
+.profile-header { background:var(--card); border-radius:16px; padding:32px; box-shadow:var(--shadow-lg); margin-bottom:24px; display:flex; gap:24px; align-items:center; }
+.profile-avatar { width:80px; height:80px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; flex-shrink:0; overflow:hidden; }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; }
+.profile-info h1 { font-size:22px; font-weight:900; margin-bottom:4px; }
+.profile-info .campus { font-size:14px; color:var(--text-secondary); margin-bottom:8px; }
+.profile-info .bio { font-size:14px; color:#4b5563; line-height:1.6; }
+.profile-stats { display:flex; gap:20px; margin-top:12px; }
+.profile-stats .stat { text-align:center; }
+.profile-stats .stat-num { font-size:20px; font-weight:900; color:var(--text); }
+.profile-stats .stat-label { font-size:12px; color:var(--text-secondary); }
+.profile-actions { margin-left:auto; display:flex; flex-direction:column; gap:8px; }
+.section-title { font-size:18px; font-weight:700; margin-bottom:16px; }
+.items-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px; margin-bottom:32px; }
+.item-card { text-decoration:none; color:inherit; }
+.item-card .img-wrap { width:100%; aspect-ratio:1; background:#f3f4f6; overflow:hidden; }
+.item-card .img-wrap img { width:100%; height:100%; object-fit:cover; }
+.item-card .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:36px; }
+.item-card .info { padding:12px; }
+.item-card .info h3 { font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:4px; }
+.item-card .price { color:var(--primary); font-size:16px; font-weight:900; }
+.review-item { background:var(--card); border-radius:12px; padding:16px; margin-bottom:10px; box-shadow:var(--shadow); }
+.review-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.review-avatar { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+.review-user { font-size:13px; font-weight:600; }
+.review-stars { font-size:13px; color:var(--warning); }
+.review-date { font-size:12px; color:var(--text-secondary); margin-left:auto; }
+.review-content { font-size:14px; line-height:1.6; color:#4b5563; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if user.avatar %}
+            <img src="{{ url_for('static', filename='uploads/' + user.avatar) }}">
+            {% else %}
+            {{ user.username[0] }}
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            <div class="campus">{{ user.campus or "未填写学校" }} · 注册于 {{ user.created_at.strftime('%Y-%m-%d') }}</div>
+            {% if user.bio %}<div class="bio">{{ user.bio }}</div>{% endif %}
+            <div class="profile-stats">
+                <div class="stat"><div class="stat-num">{{ items|length }}</div><div class="stat-label">在售</div></div>
+                <div class="stat"><div class="stat-num">{{ total_sold }}</div><div class="stat-label">已售</div></div>
+                <div class="stat"><div class="stat-num">{% if avg_rating %}{{ avg_rating }}{% else %}-{% endif %}</div><div class="stat-label">评分</div></div>
+                <div class="stat"><div class="stat-num">{{ reviews|length }}</div><div class="stat-label">评价</div></div>
+            </div>
+        </div>
+        <div class="profile-actions">
+            {% if current_user.is_authenticated and current_user.id == user.id %}
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-outline btn-sm">编辑资料</a>
+            {% elif current_user.is_authenticated %}
+            <a href="{{ url_for('chat', user_id=user.id) }}" class="btn btn-primary btn-sm">发消息</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if items %}
+    <div class="section-title">在售商品（{{ items|length }}）</div>
+    <div class="items-grid">
+        {% for item in items %}
+        <a href="{{ url_for('item_detail', item_id=item.id) }}" class="item-card card">
+            <div class="img-wrap">
+                {% if item.images %}<img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" loading="lazy">
+                {% else %}<div class="no-img">📦</div>{% endif %}
+            </div>
+            <div class="info">
+                <h3>{{ item.title }}</h3>
+                <div class="price">¥{{ "%.0f"|format(item.price) }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if reviews %}
+    <div class="section-title">收到的评价（{{ reviews|length }}）</div>
+    {% for r in reviews %}
+    <div class="review-item">
+        <div class="review-header">
+            <div class="review-avatar">{{ r.buyer.username[0] }}</div>
+            <span class="review-user">{{ r.buyer.username }}</span>
+            <span class="review-stars">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</span>
+            <span class="review-date">{{ r.created_at.strftime('%m-%d') }}</span>
+        </div>
+        <div class="review-content">{{ r.content }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

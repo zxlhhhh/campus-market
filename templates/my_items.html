@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}我的发布 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.page-header h2 { font-size:22px; font-weight:900; }
+.my-items-list { max-width:800px; margin:0 auto; }
+.my-item { background:var(--card); border-radius:var(--radius); padding:16px; margin-bottom:12px; display:flex; gap:16px; align-items:center; box-shadow:var(--shadow); }
+.my-item .thumb { width:88px; height:88px; border-radius:10px; background:#f3f4f6; overflow:hidden; flex-shrink:0; }
+.my-item .thumb img { width:100%; height:100%; object-fit:cover; }
+.my-item .thumb .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:28px; }
+.my-item .info { flex:1; min-width:0; }
+.my-item .info h3 { font-size:15px; font-weight:600; margin-bottom:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.my-item .info .price { color:var(--primary); font-weight:900; font-size:18px; }
+.my-item .info .meta { font-size:12px; color:var(--text-secondary); margin-top:6px; display:flex; align-items:center; gap:8px; }
+.my-item .actions { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="my-items-list">
+        <div class="page-header">
+            <h2>我的发布</h2>
+            <a href="{{ url_for('publish') }}" class="btn btn-primary btn-sm">+ 发布新商品</a>
+        </div>
+        {% for item in items %}
+        <div class="my-item">
+            <a href="{{ url_for('item_detail', item_id=item.id) }}" class="thumb">
+                {% if item.images %}<img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}">
+                {% else %}<div class="no-img">📦</div>{% endif %}
+            </a>
+            <div class="info">
+                <h3><a href="{{ url_for('item_detail', item_id=item.id) }}" style="color:inherit;text-decoration:none;">{{ item.title }}</a></h3>
+                <div class="price">¥{{ "%.0f"|format(item.price) }}</div>
+                <div class="meta">
+                    {% if item.status == '在售' %}<span class="tag tag-green">在售</span>
+                    {% elif item.status == '已售出' %}<span class="tag tag-orange">已售出</span>
+                    {% else %}<span class="tag tag-gray">已下架</span>{% endif %}
+                    <span>{{ item.views }}浏览</span>
+                    <span>❤ {{ item.favorite_count }}</span>
+                    <span>{{ item.created_at.strftime('%m-%d') }}</span>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline">编辑</a>
+                {% if item.status == '在售' %}
+                <a href="{{ url_for('mark_sold', item_id=item.id) }}" class="btn btn-sm btn-success">已售出</a>
+                <a href="{{ url_for('toggle_status', item_id=item.id) }}" class="btn btn-sm btn-gray">下架</a>
+                {% elif item.status == '已下架' %}
+                <a href="{{ url_for('toggle_status', item_id=item.id) }}" class="btn btn-sm btn-gray">上架</a>
+                {% endif %}
+                <a href="{{ url_for('delete_item', item_id=item.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除？删除后不可恢复')">删除</a>
+            </div>
+        </div>
+        {% endfor %}
+        {% if not items %}
+        <div class="empty"><div class="empty-icon">📦</div><p>你还没有发布任何商品</p>
+            <a href="{{ url_for('publish') }}" class="btn btn-primary" style="margin-top:16px;">去发布</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
