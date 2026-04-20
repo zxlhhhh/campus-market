@@ -92,10 +92,10 @@
         <div class="detail-body">
             <h1>{{ item.title }}</h1>
             <div class="price-section">
-                <span class="price">¥{{ "%.0f"|format(item.price) }}</span>
+                <span class="price">¥{{ "%.0f"|format(item.buyer_price) }}</span>
                 {% if item.original_price %}
                 <span class="original">¥{{ "%.0f"|format(item.original_price) }}</span>
-                {% set disc = ((1 - item.price / item.original_price) * 100)|int %}
+                {% set disc = ((1 - item.buyer_price / item.original_price) * 100)|int %}
                 {% if disc > 0 %}<span class="discount">省{{ disc }}%</span>{% endif %}
                 {% endif %}
             </div>
@@ -120,9 +120,10 @@
                 {% if current_user.is_authenticated and current_user.id == item.seller_id %}
                 <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-outline">编辑商品</a>
                 {% elif current_user.is_authenticated %}
-                <a href="{{ url_for('chat', user_id=item.seller_id, item_id=item.id) }}" class="btn btn-primary">我想要</a>
+                <a href="{{ url_for('chat', user_id=item.seller_id, item_id=item.id) }}" class="btn btn-outline">联系卖家</a>
+                <a href="{{ url_for('create_order', item_id=item.id) }}" class="btn btn-primary">我想要</a>
                 {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-primary">登录后联系卖家</a>
+                <a href="{{ url_for('login') }}" class="btn btn-primary">登录后购买</a>
                 {% endif %}
             </div>
         </div>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block extra_css %}
+.detail-wrap{max-width:700px;margin:24px auto;padding:0 20px}
+.detail-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.detail-tag{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;background:#e8f5e9;color:#2e7d32}
+.chat-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:16px}
+.chat-msg{margin-bottom:10px;display:flex}
+.chat-msg.me{justify-content:flex-end}
+.chat-msg .bub{padding:8px 14px;border-radius:10px;font-size:14px;max-width:75%;line-height:1.6}
+.chat-msg.me .bub{background:var(--primary);color:#fff;border-radius:10px 10px 0 10px}
+.chat-msg.other .bub{background:#f0efeb;border-radius:10px 10px 10px 0}
+.wx-box{background:#fff8f0;border:1px solid #ffe0b2;border-radius:10px;padding:14px;margin-top:14px}
+{% endblock %}
+{% block content %}
+<div class="detail-wrap">
+<a href="/buddy" style="color:var(--text-secondary);font-size:13px;text-decoration:none">← 返回列表</a>
+<div class="detail-card" style="margin-top:12px">
+<div style="display:flex;justify-content:space-between;align-items:start">
+<div><span class="detail-tag">{{ post.category }}</span><h2 style="margin:10px 0 8px">{{ post.title }}</h2></div>
+{% if post.user_id == current_user.id %}<a href="/buddy/{{ post.id }}/close" style="color:#e53935;font-size:13px" onclick="return confirm('确定关闭？')">关闭帖子</a>{% endif %}
+</div>
+<p style="font-size:15px;line-height:1.8;color:#444;margin-bottom:14px">{{ post.content }}</p>
+<div style="font-size:13px;color:var(--text-secondary)">👤 {{ post.user.username }} · 📍 {{ post.location or '未指定' }} · 🕐 {{ post.time_info or '待定' }} · 👥 需{{ post.max_people }}人 · {{ post.created_at.strftime('%m-%d %H:%M') }}</div>
+</div>
+{% if post.user_id != current_user.id %}
+<div style="display:flex;gap:10px"><a href="/buddy/chat/{{ post.user_id }}" style="padding:10px 24px;background:var(--primary);color:#fff;border-radius:8px;font-weight:600;text-decoration:none;font-size:14px">💬 私信TA</a></div>
+{% endif %}
+</div>
+{% endblock %}

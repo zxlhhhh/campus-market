@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<style>
+.ad-wrap{display:grid;grid-template-columns:240px 1fr;gap:20px;max-width:1400px;margin:20px auto;padding:0 20px}
+.ad-side{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:16px 0;height:fit-content;position:sticky;top:20px;border:1px solid #e4e4e7}
+.ad-side .head{padding:0 20px 12px;border-bottom:1px solid #e4e4e7;margin-bottom:8px}
+.ad-side .head h3{font-size:15px;font-weight:700;color:#0a0a0a;margin:0}
+.ad-side .head small{font-size:11px;color:#71717a}
+.ad-side a{display:flex;align-items:center;gap:10px;padding:10px 20px;color:#52525b;text-decoration:none;font-size:13px;font-weight:500;transition:all .15s;border-left:3px solid transparent}
+.ad-side a:hover{background:#f9fafb;color:#0a0a0a}
+.ad-side a.active{background:#eff6ff;color:#2563eb;border-left-color:#2563eb;font-weight:600}
+.ad-side a .ico{font-size:15px;width:18px;text-align:center}
+.ad-side .divider{height:1px;background:#e4e4e7;margin:8px 0}
+.ad-main{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:28px;border:1px solid #e4e4e7}
+.ad-main h2{font-size:22px;font-weight:800;margin:0 0 20px;letter-spacing:-0.02em}
+.ad-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.ad-stat{background:linear-gradient(135deg,#fff,#fafafa);border:1px solid #e4e4e7;padding:18px;border-radius:12px;text-align:center;transition:transform .15s}
+.ad-stat:hover{transform:translateY(-2px)}
+.ad-stat .num{font-size:26px;font-weight:800;margin:0;letter-spacing:-0.02em}
+.ad-stat .label{color:#71717a;margin:4px 0 0;font-size:12px;font-weight:500}
+.ad-stat.blue .num{color:#2563eb}
+.ad-stat.green .num{color:#10b981}
+.ad-stat.orange .num{color:#f97316}
+.ad-stat.red .num{color:#ef4444}
+.ad-stat.purple .num{color:#8b5cf6}
+.ad-stat.gold .num{color:#c5a55a}
+.ad-table{width:100%;border-collapse:collapse;font-size:13px}
+.ad-table th{background:#f9fafb;padding:12px 10px;text-align:left;font-weight:600;color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #e4e4e7}
+.ad-table td{padding:12px 10px;border-bottom:1px solid #f3f4f6}
+.ad-table tr:hover td{background:#fafafa}
+.btn-sm{display:inline-block;padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid #e4e4e7;background:#fff;cursor:pointer;text-decoration:none;color:#0a0a0a;font-weight:500;margin-right:4px}
+.btn-sm:hover{background:#f3f4f6}
+.btn-sm.danger{color:#ef4444;border-color:#fecaca}
+.btn-sm.danger:hover{background:#fef2f2}
+.btn-sm.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+.btn-sm.primary:hover{background:#1d4ed8}
+.bd-sm{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.bd-sm.ok{background:#d1fae5;color:#065f46}
+.bd-sm.warn{background:#fed7aa;color:#9a3412}
+.bd-sm.err{background:#fecaca;color:#991b1b}
+.bd-sm.info{background:#dbeafe;color:#1e40af}
+.sec-ttl{font-size:15px;font-weight:700;margin:24px 0 12px;color:#0a0a0a;display:flex;align-items:center;gap:8px}
+.frow{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.frow input,.frow select,.frow textarea{padding:9px 14px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.frow input:focus,.frow select:focus{border-color:#2563eb}
+.frow input[type=text],.frow input[type=search]{flex:1;min-width:200px}
+.frow button{padding:9px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
+.frow button:hover{background:#1d4ed8}
+.empty{text-align:center;padding:50px;color:#a1a1aa}
+.flash-ok{background:#d1fae5;color:#065f46;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px}
+.flash-warn{background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px}
+@media(max-width:900px){.ad-wrap{grid-template-columns:1fr}.ad-side{position:relative;top:0}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="ad-wrap">
+  <div class="ad-side">
+    <div class="head">
+      <h3>管理后台</h3>
+      <small>{{ current_user.username }}</small>
+    </div>
+    <a href="/admin" {% if request.path == '/admin' %}class="active"{% endif %}><span class="ico">📊</span>数据概览</a>
+    <a href="/admin/items" {% if '/admin/item' in request.path %}class="active"{% endif %}><span class="ico">📦</span>商品管理</a>
+    <a href="/admin/consign" {% if '/admin/consign' in request.path %}class="active"{% endif %}><span class="ico">🏷️</span>寄卖订单</a>
+    <a href="/admin/users" {% if '/admin/user' in request.path %}class="active"{% endif %}><span class="ico">👥</span>用户管理</a>
+    <a href="/admin/buddy" {% if '/admin/buddy' in request.path %}class="active"{% endif %}><span class="ico">🤝</span>找搭子帖</a>
+    <div class="divider"></div>
+    <a href="/admin/announcements" {% if '/admin/announcement' in request.path %}class="active"{% endif %}><span class="ico">📢</span>公告管理</a>
+    <a href="/admin/keywords" {% if '/admin/keyword' in request.path %}class="active"{% endif %}><span class="ico">🚫</span>关键词屏蔽</a>
+    <a href="/admin/ips" {% if '/admin/ip' in request.path %}class="active"{% endif %}><span class="ico">🛡️</span>IP黑名单</a>
+    <a href="/admin/ai-stats" {% if '/admin/ai' in request.path %}class="active"{% endif %}><span class="ico">🤖</span>AI统计</a>
+    <div class="divider"></div>
+    <a href="/admin/password" {% if '/admin/password' in request.path %}class="active"{% endif %}><span class="ico">🔑</span>修改密码</a>
+    <a href="/admin/export/users"><span class="ico">⬇️</span>导出用户</a>
+    <a href="/admin/export/orders"><span class="ico">⬇️</span>导出订单</a>
+  </div>
+  <div class="ad-main">
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

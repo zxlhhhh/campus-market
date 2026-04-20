@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}发布找搭子{% endblock %}
+{% block extra_css %}
+.form-wrap{max-width:600px;margin:24px auto;padding:0 20px}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px}
+.form-card h2{margin-bottom:20px;font-size:22px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.fg input,.fg textarea,.fg select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent)}
+.fg textarea{min-height:100px;resize:vertical}
+.sub-btn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+{% endblock %}
+{% block content %}
+<div class="form-wrap"><div class="form-card">
+<h2>🤝 发布找搭子</h2>
+{% with messages = get_flashed_messages() %}{% if messages %}{% for m in messages %}<div style="background:#fff3e0;color:#e65100;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">{{ m }}</div>{% endfor %}{% endif %}{% endwith %}
+<form method="POST">
+<div class="fg"><label>类型</label><select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></div>
+<div class="fg"><label>标题</label><input name="title" placeholder="比如：找个饭搭子，中午一起吃食堂" required></div>
+<div class="fg"><label>详细描述</label><textarea name="content" placeholder="说说你想找什么样的搭子，有什么要求..." required></textarea></div>
+<div class="fg"><label>时间</label><input name="time_info" placeholder="比如：周末下午、每天晚上7点"></div>
+<div class="fg"><label>地点</label><input name="location" placeholder="比如：南校区操场、一食堂"></div>
+<div class="fg"><label>需要几个搭子</label><input type="number" name="max_people" value="1" min="1" max="20"></div>
+<button type="submit" class="sub-btn">发布</button>
+</form>
+<div style="text-align:center;margin-top:14px"><a href="/buddy" style="color:var(--text-secondary);font-size:13px">← 返回搭子列表</a></div>
+</div></div>
+{% endblock %}

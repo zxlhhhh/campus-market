@@ -1,0 +1,33 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<h2>📢 公告管理</h2>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#d1fae5;color:#065f46;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <div style="background:#f9fafb;border:1px solid var(--border);padding:16px;border-radius:10px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin:0 0 12px">✍️ 发布新公告</h3>
+      <form method="post">
+        <div class="frow">
+          <input type="text" name="title" placeholder="公告标题" required style="flex:2">
+          <select name="type" style="flex:1"><option value="通知">📢 通知</option><option value="活动">🎉 活动</option><option value="维护">🔧 维护</option></select>
+        </div>
+        <textarea name="content" placeholder="公告内容..." required rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;font-family:inherit;resize:vertical;margin-bottom:10px"></textarea>
+        <button type="submit" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">发布公告</button>
+      </form>
+    </div>
+    <table class="ad-table">
+      <tr><th>标题</th><th>类型</th><th>状态</th><th>时间</th><th>操作</th></tr>
+      {% for a in anns %}
+      <tr>
+        <td><b>{{ a.title }}</b><br><small style="color:#6b7280">{{ a.content[:60] }}{% if a.content|length > 60 %}...{% endif %}</small></td>
+        <td><span class="bd-sm ok">{{ a.type }}</span></td>
+        <td>{% if a.is_active %}<span class="bd-sm ok">已启用</span>{% else %}<span class="badge-sm">已停用</span>{% endif %}</td>
+        <td style="color:#999">{{ a.created_at.strftime("%m-%d %H:%M") }}</td>
+        <td>
+          <form method="post" action="/admin/announcement/{{ a.id }}/toggle" style="display:inline"><button class="btn-sm">{% if a.is_active %}停用{% else %}启用{% endif %}</button></form>
+          <form method="post" action="/admin/announcement/{{ a.id }}/delete" style="display:inline" onsubmit="return confirm('确认删除？')"><button class="btn-sm danger">删除</button></form>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="5" class="empty">暂无公告</td></tr>{% endfor %}
+    </table>
+{% endblock %}

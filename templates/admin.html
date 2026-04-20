@@ -1,0 +1,65 @@
+{% extends "admin_base.html" %}
+{% block title %}管理后台{% endblock %}
+{% block admin_content %}
+<h2>📊 数据概览</h2>
+<div class="ad-stats">
+  <div class="ad-stat blue"><p class="num">{{ total_users }}</p><p class="label">总用户数</p></div>
+  <div class="ad-stat green"><p class="num">{{ items_on_sale }}</p><p class="label">在售商品</p></div>
+  <div class="ad-stat purple"><p class="num">{{ total_orders }}</p><p class="label">总订单</p></div>
+  <div class="ad-stat orange"><p class="num">{{ completed_orders }}</p><p class="label">已完成</p></div>
+  <div class="ad-stat red"><p class="num">¥{{ total_revenue }}</p><p class="label">平台收入 ({{ commission_rate }}%)</p></div>
+  <div class="ad-stat gold"><p class="num">¥{{ total_gmv }}</p><p class="label">总交易额 GMV</p></div>
+</div>
+
+<h3 class="sec-ttl">⚡ 快捷功能</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px">
+  <a href="/admin/items" style="display:block;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:12px;padding:18px;text-decoration:none;color:#0a0a0a;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:24px;margin-bottom:6px">📦</div>
+    <div style="font-weight:700;font-size:14px">商品管理</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:4px">删除、置顶、搜索</div>
+  </a>
+  <a href="/admin/consign" style="display:block;background:linear-gradient(135deg,#fff8f0,#fed7aa);border:1px solid #fdba74;border-radius:12px;padding:18px;text-decoration:none;color:#0a0a0a;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:24px;margin-bottom:6px">🏷️</div>
+    <div style="font-weight:700;font-size:14px">寄卖订单</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:4px">收入统计、结算</div>
+  </a>
+  <a href="/admin/users" style="display:block;background:linear-gradient(135deg,#f5f3ff,#ddd6fe);border:1px solid #c4b5fd;border-radius:12px;padding:18px;text-decoration:none;color:#0a0a0a;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:24px;margin-bottom:6px">👥</div>
+    <div style="font-weight:700;font-size:14px">用户管理</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:4px">封禁、删除</div>
+  </a>
+  <a href="/admin/announcements" style="display:block;background:linear-gradient(135deg,#ecfdf5,#a7f3d0);border:1px solid #6ee7b7;border-radius:12px;padding:18px;text-decoration:none;color:#0a0a0a;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:24px;margin-bottom:6px">📢</div>
+    <div style="font-weight:700;font-size:14px">发布公告</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:4px">通知、活动</div>
+  </a>
+</div>
+
+<h3 class="sec-ttl">🧾 最近订单</h3>
+<table class="ad-table">
+  <tr><th>订单号</th><th>商品</th><th>金额</th><th>提成</th><th>状态</th><th>时间</th></tr>
+  {% for o in recent_orders %}
+  <tr>
+    <td><a href="{{ url_for('order_detail', order_id=o.id) }}" style="color:#2563eb">{{ o.order_no[:12] }}...</a></td>
+    <td>{{ o.item.title[:15] if o.item else '-' }}</td>
+    <td>¥{{ "%.2f"|format(o.buyer_price) }}</td>
+    <td style="color:#ef4444">¥{{ "%.2f"|format(o.commission) }}</td>
+    <td><span class="bd-sm {{ 'ok' if o.status == '已完成' else 'warn' }}">{{ o.status }}</span></td>
+    <td style="color:#999">{{ o.created_at.strftime("%m-%d %H:%M") }}</td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="empty">暂无订单</td></tr>{% endfor %}
+</table>
+
+<h3 class="sec-ttl">👥 最近注册用户</h3>
+<table class="ad-table">
+  <tr><th>用户名</th><th>学号</th><th>校区</th><th>注册时间</th></tr>
+  {% for u in recent_users %}
+  <tr>
+    <td><a href="{{ url_for('user_profile', user_id=u.id) }}" style="color:#2563eb">{{ u.username }}</a></td>
+    <td>{{ u.student_id }}</td>
+    <td>{{ u.campus or "-" }}</td>
+    <td style="color:#999">{{ u.created_at.strftime("%m-%d %H:%M") }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

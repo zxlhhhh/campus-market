@@ -1,0 +1,33 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<h2>👥 用户管理</h2>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#d1fae5;color:#065f46;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <form method="get" class="frow">
+      <input type="search" name="q" placeholder="搜索用户名或学号..." value="{{ q }}">
+      <button>搜索</button>
+    </form>
+    <table class="ad-table">
+      <tr><th>ID</th><th>用户名</th><th>学号</th><th>校区</th><th>状态</th><th>注册时间</th><th>操作</th></tr>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td><a href="{{ url_for('user_profile', user_id=u.id) }}" style="color:#2563eb">{{ u.username }}</a>{% if u.is_admin %} <span class="bd-sm warn">管理员</span>{% endif %}</td>
+        <td>{{ u.student_id }}</td>
+        <td>{{ u.campus or '-' }}</td>
+        <td>{% if u.is_banned %}<span class="bd-sm err">已封禁</span>{% else %}<span class="bd-sm ok">正常</span>{% endif %}</td>
+        <td style="color:#999">{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+        <td>
+          {% if not u.is_admin %}
+          <form method="post" action="/admin/user/{{ u.id }}/ban" style="display:inline" onsubmit="return confirm('{% if u.is_banned %}确认解封？{% else %}确认封禁？{% endif %}')">
+            <input type="hidden" name="reason" value="违规">
+            <button class="btn-sm {{ 'primary' if u.is_banned else 'danger' }}">{% if u.is_banned %}解封{% else %}封禁{% endif %}</button>
+          </form>
+          <form method="post" action="/admin/user/{{ u.id }}/delete" style="display:inline" onsubmit="return confirm('确认删除？此操作不可恢复')"><button class="btn-sm danger">删除</button></form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+{% endblock %}

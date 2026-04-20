@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}错题本{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:24px 20px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:28px;font-weight:800;margin:0">📕 我的错题本</h1>
+      <p style="color:var(--text-secondary);margin:4px 0 0;font-size:14px">自动收集做错的题目，反复复习直到掌握</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="loadWrong(false)" id="btnUnmastered" style="padding:8px 18px;border-radius:8px;border:1.5px solid var(--primary);background:var(--primary);color:white;cursor:pointer;font-weight:600;font-size:13px">未掌握</button>
+      <button onclick="loadWrong(true)" id="btnMastered" style="padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--text-secondary);cursor:pointer;font-weight:500;font-size:13px">已掌握</button>
+    </div>
+  </div>
+  <div id="wrongList"></div>
+  <div id="emptyState" style="display:none;text-align:center;padding:60px 20px">
+    <div style="font-size:64px;margin-bottom:16px">🎉</div>
+    <h3 style="color:var(--text);margin:0 0 8px">还没有错题</h3>
+    <p style="color:var(--text-secondary);font-size:14px">在 <a href="/tutor" style="color:var(--primary)">AI导师</a> 中做题时，系统会自动收集错题</p>
+  </div>
+</div>
+
+<script>
+let currentMastered = false;
+
+async function loadWrong(mastered) {
+    currentMastered = mastered;
+    document.getElementById('btnUnmastered').style.background = mastered ? 'var(--card)' : 'var(--primary)';
+    document.getElementById('btnUnmastered').style.color = mastered ? 'var(--text-secondary)' : 'white';
+    document.getElementById('btnMastered').style.background = mastered ? 'var(--primary)' : 'var(--card)';
+    document.getElementById('btnMastered').style.color = mastered ? 'white' : 'var(--text-secondary)';
+
+    const res = await fetch('/api/wrong_answers?mastered=' + mastered);
+    const data = await res.json();
+    const list = document.getElementById('wrongList');
+    const empty = document.getElementById('emptyState');
+
+    if (data.items.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        if (mastered) {
+            empty.querySelector('h3').textContent = '还没有已掌握的题目';
+            empty.querySelector('p').innerHTML = '把错题标记为"已掌握"后会出现在这里';
+        } else {
+            empty.querySelector('h3').textContent = '🎉 太棒了，没有错题！';
+            empty.querySelector('p').innerHTML = '在 <a href="/tutor" style="color:var(--primary)">AI导师</a> 中做题时，系统会自动收集错题';
+        }
+        return;
+    }
+
+    empty.style.display = 'none';
+    list.innerHTML = data.items.map(function(w, i) {
+        return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px" id="wrong-' + w.id + '">'
+            + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">'
+            + '<div style="font-size:12px;color:var(--text-secondary)">'
+            + (w.source_title ? '<span style="background:var(--bg);padding:2px 8px;border-radius:4px;margin-right:8px">' + w.source_title + '</span>' : '')
+            + w.created_at + '</div>'
+            + '<div style="display:flex;gap:6px">'
+            + '<button onclick="toggleMaster(' + w.id + ')" style="padding:4px 12px;border-radius:6px;border:1px solid ' + (mastered ? '#e57373' : '#81c784') + ';background:transparent;color:' + (mastered ? '#e57373' : '#81c784') + ';cursor:pointer;font-size:12px">' + (mastered ? '标为未掌握' : '✅ 已掌握') + '</button>'
+            + '<button onclick="deleteWrong(' + w.id + ')" style="padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:12px">删除</button>'
+            + '</div></div>'
+            + '<div style="font-size:15px;line-height:1.8;white-space:pre-wrap;margin-bottom:12px">' + escapeHtml(w.question) + '</div>'
+            + (w.user_answer ? '<div style="background:#fff3e0;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px"><b style="color:#e65100">你的答案：</b>' + escapeHtml(w.user_answer) + '</div>' : '')
+            + '<div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px"><b style="color:#2e7d32">正确答案：</b>' + escapeHtml(w.correct_answer) + '</div>'
+            + (w.explanation ? '<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--primary);font-size:13px;font-weight:600">查看解析</summary><div style="padding:10px 0;font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text-secondary)">' + escapeHtml(w.explanation) + '</div></details>' : '')
+            + '</div>';
+    }).join('');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function toggleMaster(id) {
+    await fetch('/api/wrong_answers/' + id + '/master', {method:'POST'});
+    loadWrong(currentMastered);
+}
+
+async function deleteWrong(id) {
+    if (!confirm('确定删除这道错题？')) return;
+    await fetch('/api/wrong_answers/' + id, {method:'DELETE'});
+    document.getElementById('wrong-' + id).remove();
+}
+
+loadWrong(false);
+</script>
+{% endblock %}

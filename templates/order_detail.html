@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}订单详情 - 校园集市{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:40px auto;padding:25px;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.1)">
+    <h2 style="margin-bottom:5px;color:#333">📋 订单详情</h2>
+    <p style="color:#999;font-size:13px;margin-bottom:20px">订单号：{{ order.order_no }}</p>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#f0fff0;color:#27ae60;padding:10px;border-radius:6px;margin-bottom:15px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <!-- 状态 -->
+    {% set status_colors = {"待交易":"#3498db","待发货":"#3498db","待收货":"#9b59b6","已完成":"#27ae60","已取消":"#999"} %}
+    <div style="text-align:center;padding:20px;margin-bottom:20px;background:#f8f8f8;border-radius:8px">
+        <span style="font-size:28px;font-weight:700;color:{{ status_colors.get(order.status, '#333') }}">{{ order.status }}</span>
+        {% if order.status == "待交易" and order.buyer_id == current_user.id %}
+        <p style="color:#999;margin-top:8px">请尽快完成付款</p>
+        {% elif order.status == "待发货" and order.seller_id == current_user.id %}
+        <p style="color:#999;margin-top:8px">买家已付款，请按约定送货</p>
+        {% elif order.status == "待收货" and order.buyer_id == current_user.id %}
+        <p style="color:#999;margin-top:8px">卖家已送货，请前往取货</p>
+        {% endif %}
+    </div>
+    <!-- 商品信息 -->
+    <div style="display:flex;gap:12px;padding:15px;background:#f8f8f8;border-radius:8px;margin-bottom:15px">
+        {% if order.item.images %}
+        <img src="{{ url_for('static', filename='uploads/' + order.item.images.split(',')[0]) }}" style="width:80px;height:80px;object-fit:cover;border-radius:8px">
+        {% endif %}
+        <div>
+            <h3 style="margin:0 0 5px 0;font-size:16px"><a href="{{ url_for('item_detail', item_id=order.item_id) }}" style="color:#333;text-decoration:none">{{ order.item.title }}</a></h3>
+            <p style="margin:0;color:#e74c3c;font-weight:700">¥{{ "%.2f"|format(order.buyer_price) }}</p>
+        </div>
+    </div>
+    <!-- 交货信息 -->
+    <div style="padding:15px;background:#f0f7ff;border-radius:8px;margin-bottom:15px">
+        <p style="margin:0 0 8px 0"><strong>📍 交货地点：</strong>{{ order.pickup_location }}</p>
+        <p style="margin:0 0 8px 0"><strong>🕐 交货时间：</strong>{{ order.pickup_time }}</p>
+        {% if order.buyer_note %}<p style="margin:0"><strong>💬 备注：</strong>{{ order.buyer_note }}</p>{% endif %}
+    </div>
+    <!-- 修改交货信息 & 聊天 -->
+    {% if order.status not in ["已完成", "已取消"] %}
+    <div style="display:flex;gap:10px;margin-bottom:15px">
+        {% if order.buyer_id == current_user.id %}
+        <a href="{{ url_for('chat', user_id=order.seller_id) }}" class="btn btn-outline" style="flex:1;justify-content:center">💬 联系卖家</a>
+        {% else %}
+        <a href="{{ url_for('chat', user_id=order.buyer_id) }}" class="btn btn-outline" style="flex:1;justify-content:center">💬 联系买家</a>
+        {% endif %}
+        <button onclick="document.getElementById('editInfo').style.display=document.getElementById('editInfo').style.display=='none'?'block':'none'" class="btn btn-gray" style="flex:1;justify-content:center">📝 修改交货信息</button>
+    </div>
+    <div id="editInfo" style="display:none;padding:15px;background:#f8f8f8;border-radius:8px;margin-bottom:15px">
+        <form method="post" action="{{ url_for('update_order_info', order_id=order.id) }}">
+            <div style="margin-bottom:10px">
+                <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px">📍 新交货地点</label>
+                <input type="text" name="pickup_location" value="{{ order.pickup_location }}" required style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box">
+            </div>
+            <div style="margin-bottom:10px">
+                <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px">🕐 新交货时间</label>
+                <input type="text" name="pickup_time" value="{{ order.pickup_time }}" required style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box">
+            </div>
+            <button type="submit" style="width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">确认修改</button>
+        </form>
+    </div>
+    {% endif %}
+    <!-- 金额明细 -->
+    <div style="padding:15px;border:1px solid #eee;border-radius:8px;margin-bottom:20px">
+        <p style="margin:0 0 8px 0;display:flex;justify-content:space-between"><span>买家支付</span><strong>¥{{ "%.2f"|format(order.buyer_price) }}</strong></p>
+        <p style="margin:0 0 8px 0;display:flex;justify-content:space-between;color:#999"><span>卖家收到</span><span>¥{{ "%.2f"|format(order.seller_price) }}</span></p>
+        <p style="margin:0;display:flex;justify-content:space-between;color:#999"><span>平台服务费</span><span>¥{{ "%.2f"|format(order.commission) }}</span></p>
+    </div>
+    <!-- 操作按钮 -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+        {% if order.status == "待交易" and order.buyer_id == current_user.id %}
+        <form method="post" action="{{ url_for('confirm_payment', order_id=order.id) }}" style="flex:1">
+            <button type="submit" style="width:100%;padding:12px;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">确认已完成交易</button>
+        </form>
+        <form method="post" action="{{ url_for('cancel_order', order_id=order.id) }}" style="flex:1">
+            <button type="submit" style="width:100%;padding:12px;background:#ddd;color:#666;border:none;border-radius:8px;font-size:15px;cursor:pointer" onclick="return confirm('确定取消订单？')">取消订单</button>
+        </form>
+        {% elif order.status == "待发货" and order.seller_id == current_user.id %}
+        <form method="post" action="{{ url_for('confirm_delivery', order_id=order.id) }}" style="flex:1">
+            <button type="submit" style="width:100%;padding:12px;background:#3498db;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">确认已送货</button>
+        </form>
+        {% elif order.status == "待收货" and order.buyer_id == current_user.id %}
+        <form method="post" action="{{ url_for('confirm_received', order_id=order.id) }}" style="flex:1">
+            <button type="submit" style="width:100%;padding:12px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">确认收货</button>
+        </form>
+        {% endif %}
+    </div>
+    <!-- 免责声明 -->
+    <div style="padding:10px 12px;background:#f5f5f5;border-radius:6px;margin-bottom:15px;font-size:11px;color:#999;line-height:1.8">
+        ⚠️ 本平台仅提供信息撮合，不参与交易，不承担售后责任。请当面验货后交易。
+    </div>
+    <!-- 时间线 -->
+    <div style="margin-top:20px;padding-top:15px;border-top:1px solid #eee;font-size:13px;color:#999">
+        <p>下单时间：{{ order.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+        {% if order.paid_at %}<p>付款时间：{{ order.paid_at.strftime("%Y-%m-%d %H:%M") }}</p>{% endif %}
+        {% if order.completed_at %}<p>完成时间：{{ order.completed_at.strftime("%Y-%m-%d %H:%M") }}</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

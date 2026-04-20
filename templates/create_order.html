@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}确认下单 - 校园集市{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:40px auto;padding:25px;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.1)">
+    <h2 style="margin-bottom:20px;color:#333">📦 确认下单</h2>
+    <div style="display:flex;gap:15px;padding:15px;background:#f8f8f8;border-radius:8px;margin-bottom:20px">
+        {% if item.images %}
+        <img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">
+        {% endif %}
+        <div>
+            <h3 style="margin:0 0 8px 0;color:#333">{{ item.title }}</h3>
+            <p style="margin:0;color:#999;font-size:14px">卖家：{{ item.seller.username }}</p>
+            <p style="margin:8px 0 0 0">
+                <span style="color:#e74c3c;font-size:22px;font-weight:700">¥{{ "%.2f"|format(item.buyer_price) }}</span>
+                <span style="color:#999;font-size:13px;margin-left:8px;text-decoration:line-through">原价 ¥{{ "%.2f"|format(item.original_price) }}</span>
+            </p>
+        </div>
+    </div>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#fff3f3;color:#e74c3c;padding:10px;border-radius:6px;margin-bottom:15px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <form method="post" style="display:flex;flex-direction:column;gap:15px">
+        <div>
+            <label style="display:block;margin-bottom:5px;font-weight:600;color:#555">📍 交货地点 <span style="color:#e74c3c">*</span></label>
+            <input type="text" name="pickup_location" required placeholder="如：3号教学楼大厅" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box">
+            <small style="color:#999">买家和卖家都会在这个地点交接商品</small>
+        </div>
+        <div>
+            <label style="display:block;margin-bottom:5px;font-weight:600;color:#555">🕐 交货时间 <span style="color:#e74c3c">*</span></label>
+            <input type="text" name="pickup_time" required placeholder="如：明天下午3点" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box">
+        </div>
+        <div>
+            <label style="display:block;margin-bottom:5px;font-weight:600;color:#555">💬 备注 <span style="color:#999;font-weight:400">(选填)</span></label>
+            <textarea name="buyer_note" rows="3" placeholder="有什么想对卖家说的..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;resize:vertical"></textarea>
+        </div>
+        <div style="background:#fff8e6;padding:12px;border-radius:8px;border:1px solid #ffe0a0">
+            <p style="margin:0;font-size:14px;color:#666">💰 订单金额：<strong style="color:#e74c3c;font-size:18px">¥{{ "%.2f"|format(item.buyer_price) }}</strong></p>
+            <p style="margin:5px 0 0 0;font-size:12px;color:#999">线下当面交易，一手交钱一手交货</p>
+        </div>
+        <div style="background:#f5f5f5;padding:12px;border-radius:8px;border-left:3px solid #999;font-size:12px;color:#666;line-height:1.8">
+            ⚠️ <strong>免责声明</strong><br>
+            本平台仅提供信息撮合服务，不参与实际交易过程。<br>
+            请买卖双方当面一手交钱一手交货，验货满意后再付款。<br>
+            交易完成后，本平台不承担任何售后责任，如有纠纷请双方自行协商。
+        </div>
+        <button type="submit" style="padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px">确认预约交易</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}与{{ other.username }}聊天{% endblock %}
+{% block extra_css %}
+.chat-wrap{max-width:700px;margin:24px auto;padding:0 20px}
+.chat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.chat-box{height:400px;overflow-y:auto;margin-bottom:14px;padding:10px}
+.cm{margin-bottom:10px;display:flex}
+.cm.me{justify-content:flex-end}
+.cm .b{padding:8px 14px;border-radius:10px;font-size:14px;max-width:75%;line-height:1.6}
+.cm.me .b{background:var(--primary);color:#fff;border-radius:10px 10px 0 10px}
+.cm.ot .b{background:#f0efeb;border-radius:10px 10px 10px 0}
+.send-row{display:flex;gap:8px}
+.send-row input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none}
+.send-row button{padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+.wx-box{background:#fff8f0;border:1px solid #ffe0b2;border-radius:10px;padding:14px;margin-top:14px}
+{% endblock %}
+{% block content %}
+<div class="chat-wrap">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+<a href="/buddy/my_messages" style="color:var(--text-secondary);font-size:13px;text-decoration:none">← 返回消息</a>
+<h3>与 {{ other.username }} 聊天</h3>
+</div>
+<div class="chat-card">
+<div class="chat-box" id="chatBox">
+{% for m in messages %}
+<div class="cm {{ 'me' if m.sender_id==current_user.id else 'ot' }}">
+<div class="b">{{ m.content }}<div style="font-size:11px;color:{{ '#ccc' if m.sender_id==current_user.id else '#999' }};margin-top:4px">{{ m.created_at.strftime('%H:%M') }}</div></div>
+</div>
+{% endfor %}
+{% if not messages %}<div style="text-align:center;color:#999;padding:40px;font-size:14px">开始聊天吧！</div>{% endif %}
+</div>
+<form method="POST" action="/buddy/chat/{{ other.id }}/send"><div class="send-row">
+<input name="content" placeholder="输入消息..." required autocomplete="off">
+<button type="submit">发送</button>
+</div></form>
+</div>
+{% if wx_request and wx_request.status=='accepted' %}
+<div class="wx-box"><b>🎉 微信已交换！</b><br>
+{% if wx_request.requester_id==current_user.id %}对方微信：<b>{{ wx_request.target_wechat }}</b>{% else %}对方微信：<b>{{ wx_request.requester_wechat }}</b>{% endif %}</div>
+{% elif wx_request and wx_request.status=='pending' and wx_request.target_id==current_user.id %}
+<div class="wx-box"><b>📩 {{ wx_request.requester.username }} 想和你交换微信</b>
+<form method="POST" action="/buddy/wechat_respond/{{ wx_request.id }}" style="margin-top:10px">
+<input name="wechat" placeholder="填写你的微信号" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;margin-right:8px" required>
+<button name="action" value="accept" style="padding:8px 16px;background:#43a047;color:#fff;border:none;border-radius:6px;cursor:pointer">同意</button>
+<button name="action" value="reject" style="padding:8px 16px;background:#e53935;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-left:6px">拒绝</button>
+</form></div>
+{% elif wx_request and wx_request.status=='pending' and wx_request.requester_id==current_user.id %}
+<div class="wx-box">⏳ 微信交换请求已发送，等待对方回复</div>
+{% elif not wx_request %}
+<div class="wx-box"><b>想加微信？</b>
+<form method="POST" action="/buddy/wechat_request/{{ other.id }}" style="margin-top:8px">
+<input name="wechat" placeholder="填写你的微信号" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;margin-right:8px" required>
+<button style="padding:8px 16px;background:var(--accent);color:var(--primary);border:none;border-radius:6px;font-weight:600;cursor:pointer">请求交换微信</button>
+</form></div>
+{% endif %}
+</div>
+<script>var cb=document.getElementById('chatBox');if(cb)cb.scrollTop=cb.scrollHeight;</script>
+{% endblock %}

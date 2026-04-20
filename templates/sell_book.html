@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}我要卖书 - 校园集市{% endblock %}
+{% block extra_css %}
+<style>
+.pub-page{display:flex;justify-content:center;padding:28px 20px}
+.pub-card{background:var(--card);padding:36px;border-radius:16px;width:100%;max-width:640px;box-shadow:var(--shadow-lg)}
+.pub-card h2{font-size:24px;font-weight:900;margin-bottom:8px}
+.pub-card .sub{color:var(--text-secondary);font-size:14px;margin-bottom:24px}
+.pub-card .form-group{margin-bottom:16px}
+.pub-card label{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.pub-card input,.pub-card textarea,.pub-card select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;font-family:inherit}
+.pub-card textarea{resize:vertical}
+.row-2{display:flex;gap:14px}
+.row-2 .form-group{flex:1}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover{border-color:var(--primary)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.preview-grid{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.preview-item{width:100px;height:100px;border-radius:10px;overflow:hidden;position:relative;border:2px solid var(--border)}
+.preview-item img{width:100%;height:100%;object-fit:cover}
+.preview-item .remove-btn{position:absolute;top:2px;right:2px;width:22px;height:22px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,#4a90d9,#357abd);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;transition:opacity .2s}
+.btn-submit:hover{opacity:0.9}
+.tip-box{background:#f0f7ff;border:1px solid #d0e3f7;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#3171b0;line-height:1.7}
+@media(max-width:600px){.pub-card{padding:20px}.row-2{flex-direction:column;gap:0}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="pub-page">
+  <div class="pub-card">
+    <h2>📚 我要卖书</h2>
+    <p class="sub">发布你的闲置书籍，教材、考研资料、课外书都可以</p>
+    <div class="tip-box">💡 拍照时请展示封面和内页状况，标注书名版次，更容易卖出哦！</div>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#fff3f3;color:#e74c3c;padding:10px;border-radius:6px;margin-bottom:15px;text-align:center">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group"><label>书名</label><input name="title" required placeholder="如：高等数学 同济第七版"></div>
+      <div class="form-group"><label>详细描述</label><textarea name="description" rows="3" placeholder="书的状况、有无笔记划线、适用课程等"></textarea></div>
+      <div class="row-2">
+        <div class="form-group"><label>售价（元）</label><input name="price" type="number" step="0.01" min="0" required placeholder="0.00"></div>
+        <div class="form-group"><label>原价（选填）</label><input name="original_price" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      </div>
+      <div class="form-group">
+        <label>成色</label>
+        <select name="condition">
+          <option>全新</option><option selected>九成新</option><option>八成新</option><option>七成新</option><option>六成新及以下</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>书籍图片（最多5张）</label>
+        <div class="upload-zone">
+          <div style="font-size:36px">📸</div>
+          <p style="font-size:14px;color:var(--text-secondary)">点击上传书籍照片</p>
+          <small style="color:#9ca3af">建议拍封面+内页，jpg/png，单张≤5MB</small>
+          <input type="file" name="images" multiple accept="image/*" id="imageInput">
+        </div>
+        <div class="preview-grid" id="previewGrid"></div>
+      </div>
+      <button class="btn-submit" type="submit">发布卖书</button>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('imageInput').addEventListener('change',function(){
+  var g=document.getElementById('previewGrid');g.innerHTML='';
+  [].forEach.call(this.files,function(f,i){if(i>=5)return;
+    var r=new FileReader(),d=document.createElement('div');d.className='preview-item';
+    r.onload=function(e){d.innerHTML='<img src="'+e.target.result+'"><button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>';g.appendChild(d)};
+    r.readAsDataURL(f)})
+});
+</script>
+{% endblock %}

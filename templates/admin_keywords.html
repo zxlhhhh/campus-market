@@ -1,0 +1,22 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<h2>🚫 关键词屏蔽</h2>
+    <p style="color:#6b7280;font-size:13px;margin-bottom:16px">添加到这里的关键词，用户发布商品/帖子时会被自动拦截</p>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#d1fae5;color:#065f46;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <form method="post" class="frow">
+      <input type="text" name="keyword" placeholder="输入要屏蔽的关键词..." required>
+      <button>添加</button>
+    </form>
+    <table class="ad-table">
+      <tr><th>关键词</th><th>添加时间</th><th>操作</th></tr>
+      {% for k in kws %}
+      <tr>
+        <td><span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:6px;font-size:12px">{{ k.keyword }}</span></td>
+        <td style="color:#999">{{ k.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><form method="post" action="/admin/keyword/{{ k.id }}/delete" style="display:inline"><button class="btn-sm danger">移除</button></form></td>
+      </tr>
+      {% else %}<tr><td colspan="3" class="empty">暂无屏蔽词</td></tr>{% endfor %}
+    </table>
+{% endblock %}

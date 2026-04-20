@@ -1,0 +1,18 @@
+<div class="admin-side">
+  <div class="side-head">
+    <h3>管理后台</h3>
+    <small>{{ current_user.username }}</small>
+  </div>
+  <a href="/admin" {% if request.path == '/admin' %}class="active"{% endif %}><span class="ico">📊</span>数据概览</a>
+  <a href="/admin/items" {% if '/admin/items' in request.path %}class="active"{% endif %}><span class="ico">📦</span>商品管理</a>
+  <a href="/admin/consign" {% if '/admin/consign' in request.path %}class="active"{% endif %}><span class="ico">🏷️</span>寄卖订单</a>
+  <a href="/admin/users" {% if '/admin/users' in request.path %}class="active"{% endif %}><span class="ico">👥</span>用户管理</a>
+  <a href="/admin/buddy" {% if '/admin/buddy' in request.path %}class="active"{% endif %}><span class="ico">🤝</span>找搭子帖</a>
+  <a href="/admin/announcements" {% if '/admin/announcement' in request.path %}class="active"{% endif %}><span class="ico">📢</span>公告管理</a>
+  <a href="/admin/keywords" {% if '/admin/keyword' in request.path %}class="active"{% endif %}><span class="ico">🚫</span>关键词屏蔽</a>
+  <a href="/admin/ips" {% if '/admin/ip' in request.path %}class="active"{% endif %}><span class="ico">🛡️</span>IP黑名单</a>
+  <a href="/admin/ai-stats" {% if '/admin/ai' in request.path %}class="active"{% endif %}><span class="ico">🤖</span>AI统计</a>
+  <a href="/admin/password" {% if '/admin/password' in request.path %}class="active"{% endif %}><span class="ico">🔑</span>修改密码</a>
+  <a href="/admin/export/users" style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px"><span class="ico">⬇️</span>导出用户</a>
+  <a href="/admin/export/orders"><span class="ico">⬇️</span>导出订单</a>
+</div>

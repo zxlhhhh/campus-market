@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}我的消息{% endblock %}
+{% block extra_css %}
+.msg-wrap{max-width:700px;margin:24px auto;padding:0 20px}
+.chat-item{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;text-decoration:none;color:var(--text);transition:all .2s}
+.chat-item:hover{border-color:var(--accent)}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.badge{background:#e53935;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px}
+.wx-card{background:#fff8f0;border:1px solid #ffe0b2;border-radius:10px;padding:14px;margin-bottom:10px}
+{% endblock %}
+{% block content %}
+<div class="msg-wrap">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+<h2>💬 我的消息</h2><a href="/buddy" style="color:var(--text-secondary);font-size:13px;text-decoration:none">← 返回搭子</a>
+</div>
+{% if wx_pending %}
+<h3 style="font-size:15px;margin-bottom:10px">📩 微信交换请求</h3>
+{% for wx in wx_pending %}
+<div class="wx-card"><b>{{ wx.requester.username }}</b> 想和你交换微信
+<form method="POST" action="/buddy/wechat_respond/{{ wx.id }}" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+<input name="wechat" placeholder="你的微信号" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px" required>
+<button name="action" value="accept" style="padding:6px 14px;background:#43a047;color:#fff;border:none;border-radius:6px;cursor:pointer">同意</button>
+<button name="action" value="reject" style="padding:6px 14px;background:#e53935;color:#fff;border:none;border-radius:6px;cursor:pointer">拒绝</button>
+</form></div>
+{% endfor %}{% endif %}
+{% if wx_accepted %}
+<h3 style="font-size:15px;margin-bottom:10px">🎉 已交换微信</h3>
+{% for wx in wx_accepted %}
+<div class="wx-card">{% if wx.requester_id==current_user.id %}{{ wx.target.username }} 的微信：<b>{{ wx.target_wechat }}</b>{% else %}{{ wx.requester.username }} 的微信：<b>{{ wx.requester_wechat }}</b>{% endif %}</div>
+{% endfor %}{% endif %}
+<h3 style="font-size:15px;margin:16px 0 10px">聊天列表</h3>
+{% for c in chats %}
+<a href="/buddy/chat/{{ c.user.id }}" class="chat-item">
+<div class="avatar">{{ c.user.username[0] }}</div>
+<div style="flex:1"><div style="font-weight:600;font-size:14px">{{ c.user.username }}{% if c.unread %}<span class="badge">{{ c.unread }}</span>{% endif %}</div>
+<div style="font-size:13px;color:var(--text-secondary);margin-top:2px">{{ c.last_msg.content[:30] if c.last_msg else '' }}</div></div>
+<div style="font-size:12px;color:#999">{{ c.last_msg.created_at.strftime('%m-%d %H:%M') if c.last_msg else '' }}</div>
+</a>
+{% endfor %}
+{% if not chats %}<div style="text-align:center;padding:40px;color:var(--text-secondary)">暂无消息</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,1787 @@
+{% extends "base.html" %}
+{% block title %}AI 导师 - 校园集市
+<style>
+<style>
+@keyframes quizPulse { 0%,100%{box-shadow:0 0 0 rgba(37,99,235,0)} 50%{box-shadow:0 0 20px rgba(37,99,235,0.4)} }
+.quiz-option:hover { background:#f8fafc !important; transform:translateX(2px); }
+.quiz-item { transition: transform .2s, border-color .3s, box-shadow .3s !important; }
+</style>
+@keyframes biliSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes biliShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+@keyframes biliSlideDown { from { transform:translate(-50%,-20px); opacity:0 } to { transform:translate(-50%,0); opacity:1 } }
+@keyframes biliPop { 0% { transform:translate(-50%,-50%) scale(0); opacity:0 } 50% { transform:translate(-50%,-50%) scale(1.3); opacity:1 } 100% { transform:translate(-50%,-50%) scale(1); opacity:1 } }
+</style>
+
+{% endblock %}
+{% block extra_css %}
+.tutor-container{max-width:900px;margin:30px auto;padding:0 20px}
+.tutor-header{text-align:center;margin-bottom:30px}
+.tutor-header h1{font-family:var(--serif);font-size:32px;font-weight:700;margin-bottom:8px}
+.tutor-header p{color:var(--text-secondary);font-size:15px}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;background:var(--card);margin-bottom:20px}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone.active{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone input{display:none}
+.upload-zone .icon{font-size:40px;margin-bottom:10px}
+.upload-zone p{color:var(--text-secondary);font-size:14px}
+.file-info{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:20px}
+.file-info .name{flex:1;font-size:14px;font-weight:500}
+.file-info .remove{color:var(--danger);cursor:pointer;font-size:18px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-secondary);border-bottom:2px solid transparent;transition:all .2s;font-family:var(--sans)}
+.tab.active{color:var(--primary);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--primary)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.chat-box{height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--card);margin-bottom:12px}
+.msg{margin-bottom:14px;line-height:1.7}
+.msg-user{text-align:right}
+.msg-user .bubble{display:inline-block;background:var(--primary);color:#fff;padding:10px 16px;border-radius:12px 12px 2px 12px;max-width:80%;text-align:left;font-size:14px}
+.msg-ai .bubble{display:inline-block;background:#f3f2ef;color:var(--text);padding:10px 16px;border-radius:12px 12px 12px 2px;max-width:85%;text-align:left;font-size:14px;white-space:pre-wrap}
+.msg-ai .bubble strong{color:var(--accent)}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:var(--sans);outline:none}
+.chat-input input:focus{border-color:var(--accent)}
+.chat-input button{padding:12px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.result-card h3{font-family:var(--serif);font-size:18px;margin-bottom:12px}
+.quiz-item{padding:16px;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;background:var(--card)}
+.quiz-item h4{font-size:15px;margin-bottom:10px}
+.quiz-option{display:block;padding:8px 14px;margin:4px 0;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;transition:all .2s}
+.quiz-option:hover{background:var(--accent-light);border-color:var(--accent)}
+.quiz-option.selected{background:var(--accent-light);border-color:var(--accent);font-weight:600}
+.quiz-option.correct{background:#ecf7f0;border-color:var(--success);color:var(--success)}
+.quiz-option.wrong{background:#fdf2f2;border-color:var(--danger);color:var(--danger)}
+.mindmap-area{min-height:500px;background:linear-gradient(135deg,#fafafa,#f0f7ff);border:1px solid var(--border);border-radius:12px;position:relative;overflow:hidden}
+.mindmap-svg{width:100%;height:500px;display:block}
+.mindmap-toolbar{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:10}
+.mindmap-toolbar button{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .15s}
+.mindmap-toolbar button:hover{background:#f3f4f6;transform:translateY(-1px)}
+.mindmap-text-view{max-height:500px;overflow-y:auto;padding:20px;background:#fff;border-radius:0 0 12px 12px;border-top:1px solid var(--border);display:none;white-space:pre-wrap;font-size:14px;line-height:2}
+.mindmap-text-view.show{display:block}
+.mindmap-area.text-mode .mindmap-svg{display:none}
+.mindmap-area.text-mode .mindmap-text-view{display:block;max-height:none}
+.mindmap-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;color:#2563eb;border:1px solid #bfdbfe}
+.loading{text-align:center;padding:40px;color:var(--text-secondary)}
+.loading::after{content:'';display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-left:10px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.action-btn{display:inline-flex;align-items:center;gap:6px;padding:12px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--sans)}
+.action-btn:hover{background:#333;transform:translateY(-1px)}
+.action-btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
+.action-btn.accent{background:var(--accent);color:var(--primary)}
+.text-input{width:100%;min-height:120px;padding:14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--sans);resize:vertical;outline:none}
+.text-input:focus{border-color:var(--accent)}
+{% endblock %}
+{% block content %}
+<div class="tutor-container">
+    <div class="tutor-header">
+        <h1>AI 智能导师</h1>
+        <p>上传课件或笔记，AI 帮你生成思维导图、出题、答疑</p>
+    </div>
+    {% if not current_user.is_authenticated %}
+    <!-- 游客模式提示条 -->
+    <div id="guestBanner" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:22px">👋</span>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:14px;font-weight:700;color:#78350f">体验模式 · 每日免费 3 次</div>
+        <div style="font-size:12px;color:#92400e;margin-top:2px">登录后可无限使用、解锁顶级模型、保存错题本</div>
+      </div>
+      <a href="/login" style="background:#1a1a1a;color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;transition:transform .15s;display:inline-block" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">登录解锁 →</a>
+      <a href="/register" style="color:#78350f;font-size:12px;text-decoration:underline">没账号？注册</a>
+    </div>
+    {% endif %}
+    
+    <!-- 模型选择器 -->
+    <div id="modelSelector" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:700;color:#0a0a0a;display:flex;align-items:center;gap:6px">
+          🎯 选择你的 AI 导师
+          <span style="background:#eff6ff;color:#2563eb;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">NEW</span>
+        </div>
+        <a href="#" onclick="toggleModelHelp();return false;" style="font-size:11px;color:#6b7280;text-decoration:none">什么是多模型？</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="modelGrid">
+        <label class="m-opt" data-tier="top" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:12px;transition:all .2s;background:linear-gradient(135deg,#fff,#fafafa)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:16px">💎</span>
+            <b style="font-size:13px">顶级导师</b>
+            <span style="background:#fef3c7;color:#92400e;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700">VIP</span>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-bottom:4px">GLM-4-Plus</div>
+          <div style="font-size:10px;color:#9ca3af">推理深入·答疑最强</div>
+        </label>
+        <label class="m-opt m-active" data-tier="smart" style="cursor:pointer;border:2px solid #2563eb;border-radius:10px;padding:12px;transition:all .2s;background:linear-gradient(135deg,#eff6ff,#dbeafe)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:16px">🚀</span>
+            <b style="font-size:13px">学霸导师</b>
+            <span style="background:#2563eb;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700">默认</span>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-bottom:4px">Kimi K2</div>
+          <div style="font-size:10px;color:#9ca3af">中文最强·长文本</div>
+        </label>
+        <label class="m-opt" data-tier="fast" style="cursor:pointer;border:1.5px solid var(--border);border-radius:10px;padding:12px;transition:all .2s;background:linear-gradient(135deg,#fff,#fafafa)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:16px">⚡</span>
+            <b style="font-size:13px">快速导师</b>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-bottom:4px">DeepSeek V3</div>
+          <div style="font-size:10px;color:#9ca3af">响应最快·无限用</div>
+        </label>
+      </div>
+      <div id="modelHelp" style="display:none;margin-top:12px;padding:10px 12px;background:#f9fafb;border-radius:8px;font-size:12px;color:#6b7280;line-height:1.7">
+        💡 <b>多模型是什么？</b>不同的AI各有所长。<b style="color:#2563eb">顶级</b>擅长深度推理（适合出题、答疑），<b style="color:#2563eb">学霸</b>擅长中文长文本（适合思维导图、总结），<b style="color:#2563eb">快速</b>响应最快（适合简单提问）。选对模型，效果翻倍！
+      </div>
+    </div>
+
+<script>
+document.querySelectorAll('.m-opt').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('.m-opt').forEach(function(x){
+      x.classList.remove('m-active');
+      x.style.border = '1.5px solid var(--border)';
+      x.style.background = 'linear-gradient(135deg,#fff,#fafafa)';
+    });
+    el.classList.add('m-active');
+    el.style.border = '2px solid #2563eb';
+    el.style.background = 'linear-gradient(135deg,#eff6ff,#dbeafe)';
+    window.__selectedTier = el.dataset.tier;
+    console.log('切换到:', window.__selectedTier);
+  });
+});
+function toggleModelHelp(){
+  var h = document.getElementById('modelHelp');
+  h.style.display = h.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+<div style="display:none">
+        <div style="width:40px;height:2px;background:var(--accent);margin:12px auto"></div>
+    </div>
+
+    <!-- 上传区域 -->
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md,.pptx,.png,.jpg,.jpeg" onchange="handleFile(this)">
+        <div class="icon">📚</div>
+        <p><strong>点击上传课件</strong><br>支持 PDF、TXT、图片、PPT（会提取文字内容）</p>
+    </div>
+    <div id="fileInfo" style="display:none" class="file-info">
+        <span>📄</span>
+        <span class="name" id="fileName"></span>
+        <span class="remove" onclick="removeFile()">✕</span>
+    </div>
+
+    <!-- 或者直接粘贴文字 -->
+    <details style="margin-bottom:20px">
+        <summary style="cursor:pointer;font-size:14px;color:var(--text-secondary)">📝 或者直接粘贴笔记文字</summary>
+        <textarea id="textInput" class="text-input" placeholder="把课件内容或笔记粘贴到这里..." style="margin-top:10px"></textarea>
+    </details>
+
+    <!-- B站网课链接 -->
+    <div style="margin:16px 0;background:linear-gradient(135deg,#fff8f0,#fff4e6);border-radius:14px;border:1px solid #fde0c3;overflow:hidden">
+      <!-- 顶部：标题 + 输入 + 按钮 -->
+      <div style="padding:16px 20px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <span style="font-size:22px">📺</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#8B4513">B站网课链接</div>
+            <div style="font-size:11px;color:#b45309;margin-top:1px">⚠️ 仅支持<b>有字幕</b>的视频</div>
+          </div>
+        </div>
+        <input type="text" id="biliUrl" placeholder="粘贴B站视频链接，如 https://www.bilibili.com/video/BV..." style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid #fde0c3;border-radius:10px;font-size:13px;background:#fff;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#fb7299'" onblur="this.style.borderColor='#fde0c3'">
+        <button onclick="extractBiliVideo()" id="biliBtn" style="padding:10px 22px;background:linear-gradient(135deg,#fb7299,#ea5577);color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(251,114,153,0.25);transition:transform .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">📺 提取内容</button>
+      </div>
+
+      <!-- 指引区（可折叠） -->
+      <details id="biliGuide" style="padding:0 20px 10px;font-size:12px;color:#78350f">
+        <summary style="cursor:pointer;user-select:none;padding:4px 0;display:inline-block;font-weight:600">💡 如何判断视频有字幕？（点击展开）</summary>
+        <div style="margin-top:8px;padding:10px 14px;background:rgba(255,255,255,0.6);border-radius:8px;line-height:1.8">
+          <div><b>① 打开视频页面</b>，播放器<b>右下角</b>看到 <span style="background:#1a1a1a;color:#fff;padding:1px 6px;border-radius:3px;font-size:10px">CC</span> 字幕图标 ✓</div>
+          <div><b>② 推荐带字幕的频道：</b></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+            <span style="background:#fff;border:1px solid #fde0c3;padding:2px 10px;border-radius:12px;font-size:11px">3Blue1Brown</span>
+            <span style="background:#fff;border:1px solid #fde0c3;padding:2px 10px;border-radius:12px;font-size:11px">吴恩达机器学习</span>
+            <span style="background:#fff;border:1px solid #fde0c3;padding:2px 10px;border-radius:12px;font-size:11px">YC中国</span>
+            <span style="background:#fff;border:1px solid #fde0c3;padding:2px 10px;border-radius:12px;font-size:11px">李永乐老师</span>
+            <span style="background:#fff;border:1px solid #fde0c3;padding:2px 10px;border-radius:12px;font-size:11px">MIT OpenCourseWare</span>
+          </div>
+          <div style="margin-top:6px;color:#9a6630;font-size:11px">💭 没字幕的视频暂无法学习（需要语音识别能力，P1 规划中）</div>
+        </div>
+      </details>
+
+      <!-- 分步进度条（默认隐藏，开始提取时显示） -->
+      <div id="biliProgress" style="display:none;padding:14px 20px;background:rgba(255,255,255,0.7);border-top:1px solid #fde0c3">
+        <div id="biliSteps" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <!-- 旧的status div保留作为兜底（绝大多数情况用新进度条） -->
+      <div id="biliStatus" style="padding:0 20px 12px;font-size:12px;color:#888;display:none"></div>
+    </div>
+
+    <!-- 功能标签 -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('mindmap')">🧠 思维导图</button>
+        <button class="tab" onclick="switchTab('quiz')">📝 智能出题</button>
+        <button class="tab" onclick="switchTab('chat')">💬 AI 答疑</button>
+        <button class="tab" onclick="switchTab('example')">🎯 例题举一反三</button>
+    </div>
+
+    <div class="tab-content active" id="tab-mindmap">
+        <button class="action-btn" onclick="generateMindmap()" id="btnMindmap">生成思维导图</button>
+        <div id="mindmapResult" style="margin-top:16px"></div>
+    </div>
+
+    <!-- 智能出题 -->
+    <div class="tab-content" id="tab-quiz">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="action-btn" onclick="generateQuiz('选择题',5)">生成 5 道选择题</button>
+            <button class="action-btn accent" onclick="generateQuiz('填空题',5)">生成 5 道填空题</button>
+            <button class="action-btn" onclick="generateQuiz('简答题',3)" style="background:var(--success)">生成 3 道简答题</button>
+        </div>
+        <div id="quizResult"></div>
+    </div>
+
+    <!-- AI 答疑 -->
+    <div class="tab-content" id="tab-chat">
+        <div class="chat-box" id="chatBox">
+            <div class="msg msg-ai"><div class="bubble">你好！我是你的 AI 导师 🎓<br>请先上传课件或粘贴笔记，然后问我任何问题，我会基于你的学习内容来回答。</div></div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="问我任何关于课件内容的问题..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button onclick="sendChat()">发送</button>
+        </div>
+    </div>
+
+        <div class="tab-content" id="tab-example">
+            <div style="margin-bottom:20px">
+                <p style="color:#666;margin-bottom:12px">📸 上传老师给的例题（图片或文字），AI 会先帮你吃透知识点，再举一反三生成变式题</p>
+                <textarea id="exampleInput" placeholder="把老师的例题粘贴到这里...&#10;&#10;例如：&#10;已知函数 f(x) = x³ - 3x + 1，求 f(x) 的极值。" style="width:100%;min-height:150px;padding:12px;border:2px dashed #ddd;border-radius:8px;font-size:14px;resize:vertical;font-family:inherit"></textarea>
+                <div style="margin-top:8px;display:flex;gap:10px;align-items:center">
+                    <label style="padding:8px 16px;background:#f5f5f5;border-radius:6px;cursor:pointer;font-size:13px;border:1px solid #ddd">
+                        📷 或上传例题图片
+                        <input type="file" accept="image/*" onchange="handleExampleImage(this)" style="display:none">
+                    </label>
+                    <span id="exampleImageName" style="font-size:13px;color:#888"></span>
+                </div>
+            </div>
+            <button onclick="analyzeExample()" style="padding:14px 32px;background:#8B4513;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;font-weight:bold">🎯 深度解析 + 举一反三</button>
+            <div id="exampleResult" style="margin-top:20px"></div>
+        </div>
+</div>
+
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+    },
+    options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+<script>
+const API_URL = "/api/ai";
+// API_KEY 已移至后端，前端不再暴露
+window.__selectedTier = 'smart'; // 默认学霸导师
+let fileContent = "";
+
+// 从 localStorage 恢复上次的内容
+try {
+    var saved = localStorage.getItem('tutor_content');
+    var savedName = localStorage.getItem('tutor_name');
+    if (saved && saved.length > 10) {
+        fileContent = saved;
+        setTimeout(function() {
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('fileName').textContent = savedName || '📄 上次的学习内容（已恢复）';
+        }, 100);
+    }
+} catch(e) {}
+
+// 保存内容到 localStorage
+function saveToLocal() {
+    try {
+        if (fileContent && fileContent.length > 10) {
+            localStorage.setItem('tutor_content', fileContent);
+            var nameEl = document.getElementById('fileName');
+            if (nameEl) localStorage.setItem('tutor_name', nameEl.textContent);
+        }
+    } catch(e) {}
+}
+let chatHistory = [];
+
+// 文件处理
+async function handleFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('fileName').textContent = file.name + ' (' + (file.size/1024).toFixed(1) + 'KB)';
+    document.getElementById('fileInfo').style.display = 'flex';
+    document.getElementById('uploadZone').style.display = 'none';
+
+    if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+        const reader = new FileReader();
+        reader.onload = e => { fileContent = e.target.result; };
+        reader.readAsText(file);
+    } else if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            fileContent = "[用户上传了一张图片，请分析图片中的文字内容]";
+            window._imageBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+        document.getElementById('fileName').textContent = file.name + ' (解析中...)';
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            fileContent = text.trim();
+            document.getElementById('fileName').textContent = file.name + ' (' + (file.size/1024).toFixed(1) + 'KB, ' + pdf.numPages + '页, 已解析)';
+            if (!fileContent) {
+                alert("PDF 解析完成但未提取到文字（可能是扫描件），请手动复制文字到文本框中。");
+            }
+        } catch(e) {
+            alert("PDF 解析失败：" + e.message + "\n请手动复制文字到文本框中。");
+            fileContent = "";
+        }
+    } else {
+        fileContent = "[用户上传了文件: " + file.name + "]";
+    }
+}
+
+function removeFile() {
+    fileContent = "";
+    try { localStorage.removeItem("tutor_content"); localStorage.removeItem("tutor_name"); } catch(e) {}
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('fileInput').value = '';
+}
+
+function getContent() {
+    let text = document.getElementById('textInput').value.trim();
+    return fileContent || text || "";
+}
+
+
+
+
+
+// 触发 MathJax 重新渲染
+function renderMath() {
+    if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise().catch(function(err) { console.log('MathJax error:', err); });
+    }
+}
+
+
+// 字幕辅助提取：在页面内嵌入提取工具
+function showSubtitleHelper(biliUrl) {
+    var status = document.getElementById('biliStatus');
+    var bvMatch = biliUrl.match(/(BV[a-zA-Z0-9]+)/);
+    var bvid = bvMatch ? bvMatch[1] : '';
+    
+    status.innerHTML = '<div style="background:white;border:1px solid #ddd;border-radius:10px;padding:16px;margin-top:8px">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+        + '<span style="font-size:18px">📝</span>'
+        + '<b style="color:#333">一键提取视频字幕</b>'
+        + '<span style="font-size:12px;color:#999">（B站AI字幕需通过浏览器提取）</span>'
+        + '</div>'
+        + '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+        + '<a href="https://www.kedou.life/caption/subtitle/bilibili" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:linear-gradient(135deg,#00a1d6,#0077b6);color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold;box-shadow:0 2px 8px rgba(0,161,214,0.3)">🔗 打开字幕提取工具</a>'
+        + '<a href="https://downsub.com/?url=https://www.bilibili.com/video/' + bvid + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold;box-shadow:0 2px 8px rgba(238,90,36,0.3)">🔗 备用工具 DownSub</a>'
+        + '</div>'
+        + '<div style="background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:#555">'
+        + '<p style="margin:0 0 6px 0"><b>操作步骤（30秒完成）：</b></p>'
+        + '<p style="margin:0 0 4px 0">1️⃣ 点击上方蓝色按钮，在新页面粘贴视频链接：<code style="background:#e9ecef;padding:2px 6px;border-radius:4px;font-size:12px;user-select:all">https://www.bilibili.com/video/' + bvid + '</code></p>'
+        + '<p style="margin:0 0 4px 0">2️⃣ 提取完成后，全选复制字幕文本</p>'
+        + '<p style="margin:0">3️⃣ 粘贴到下方输入框，点击"使用字幕"即可</p>'
+        + '</div>'
+        + '<textarea id="manualSubtitle" placeholder="把复制的字幕文本粘贴到这里..." style="width:100%;min-height:80px;padding:12px;border:2px dashed #ddd;border-radius:8px;font-size:14px;resize:vertical;box-sizing:border-box;transition:border-color 0.3s"></textarea>'
+        + '<button onclick="applyManualSubtitle()" style="margin-top:10px;padding:12px 28px;background:#8B4513;color:white;border:none;border-radius:8px;cursor:pointer;font-size:15px;font-weight:bold;width:100%">✅ 使用这段字幕，开始学习</button>'
+        + '</div>';
+}
+
+function applyManualSubtitle() {
+    var textarea = document.getElementById('manualSubtitle');
+    if (!textarea) return;
+    var subtitle = textarea.value.trim();
+    if (!subtitle) { alert('请先粘贴字幕文本'); return; }
+    
+    fileContent = fileContent + '\n\n【视频字幕完整内容】\n' + subtitle;
+    saveToLocal();
+    
+    var status = document.getElementById('biliStatus');
+    status.innerHTML = '<span style="color:#2e7d32">✅ 字幕已添加（' + subtitle.length + '字）！现在可以使用下方所有功能来学习这节课！</span>';
+    
+    var nameEl = document.getElementById('fileName');
+    if (nameEl) {
+        nameEl.textContent = nameEl.textContent.replace('(仅标题简介)', '(已添加字幕)');
+    }
+}
+
+// ===== B站视频提取 =====
+async function extractBiliVideo() {
+    var url = document.getElementById('biliUrl').value.trim();
+    if (!url) { 
+        biliShake();
+        biliToast('请先粘贴B站视频链接', 'warn'); 
+        return; 
+    }
+    if (!/BV[a-zA-Z0-9]+/.test(url)) {
+        biliShake();
+        biliToast('链接格式不对，请粘贴包含 BV 号的 B 站视频链接', 'warn');
+        return;
+    }
+
+    var btn = document.getElementById('biliBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'not-allowed';
+    btn.innerHTML = '<span style="display:inline-block;animation:biliSpin 1s linear infinite">⏳</span> 提取中...';
+
+    // 初始化进度条
+    var progress = document.getElementById('biliProgress');
+    var steps = document.getElementById('biliSteps');
+    progress.style.display = 'block';
+    steps.innerHTML = [
+        biliStep(1, 'detect', '🔍 识别视频', 'pending'),
+        biliStep(2, 'info',   '📺 获取视频信息', 'pending'),
+        biliStep(3, 'subt',   '📥 查找字幕', 'pending'),
+        biliStep(4, 'done',   '✨ AI 就绪', 'pending'),
+    ].join('');
+
+    try {
+        // Step 1: 识别
+        biliSetStep('detect', 'running');
+        await biliSleep(300);
+        var bvMatch = url.match(/BV[a-zA-Z0-9]+/);
+        biliSetStep('detect', 'done', 'BV 号识别成功：' + bvMatch[0]);
+
+        // Step 2: 获取视频信息（实际调后端）
+        biliSetStep('info', 'running');
+        var res = await fetch('/api/bili_extract', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: url})
+        });
+        var data = await res.json();
+
+        if (!res.ok) {
+            biliSetStep('info', 'error', data.error || '提取失败');
+            biliSetStep('subt', 'skip');
+            biliSetStep('done', 'skip');
+            biliResetBtn();
+            return;
+        }
+
+        biliSetStep('info', 'done', '《' + (data.title || '未知') + '》');
+
+        fileContent = data.content;
+        saveToLocal();
+        document.getElementById('fileInfo').style.display = 'block';
+        document.getElementById('fileName').textContent = '📺 ' + data.title;
+
+        // Step 3: 字幕
+        biliSetStep('subt', 'running');
+
+        if (!data.has_subtitle) {
+            // 无字幕 —— 贴心文案
+            biliSetStep('subt', 'warn', '该视频没有字幕，无法学习');
+            biliSetStep('done', 'skip');
+            biliShowNoSubtitleTip();
+            biliResetBtn();
+            return;
+        }
+
+        if (data.subtitle_url) {
+            try {
+                var subRes = await fetch(data.subtitle_url);
+                if (subRes.ok) {
+                    var subData = await subRes.json();
+                    var body = subData.body || [];
+                    if (body.length > 0) {
+                        var subtitleText = body.map(function(item) { return item.content || ''; }).join('\n');
+                        fileContent += '\n\n【视频字幕完整内容】\n' + subtitleText;
+                        saveToLocal();
+                        document.getElementById('fileName').textContent = '📺 ' + data.title + ' (字幕 ' + body.length + ' 条)';
+                        biliSetStep('subt', 'done', '字幕已下载（' + body.length + ' 条 / ' + subtitleText.length + ' 字）');
+
+                        // Step 4: 完成
+                        biliSetStep('done', 'running');
+                        await biliSleep(400);
+                        biliSetStep('done', 'done', '可以使用下方所有功能学习了！');
+                        biliCelebrate();
+                        biliResetBtn();
+                        return;
+                    }
+                }
+                biliSetStep('subt', 'warn', '字幕接口返回异常，已降级为标题+简介');
+            } catch(e) {
+                biliSetStep('subt', 'warn', '字幕下载失败（跨域），已降级');
+            }
+        } else {
+            biliSetStep('subt', 'warn', '未找到字幕文件，已降级');
+        }
+
+        // 降级路径：没拿到字幕但有标题简介
+        biliSetStep('done', 'running');
+        await biliSleep(300);
+        biliSetStep('done', 'done', '基于标题和简介也可以学习');
+        biliResetBtn();
+
+    } catch(e) {
+        biliSetStep('info', 'error', '网络错误：' + e.message);
+        biliResetBtn();
+    }
+}
+
+// ===== B站进度条辅助函数 =====
+function biliStep(num, id, label, state) {
+    return '<div class="bili-step" data-step="' + id + '" data-state="' + state + '" style="display:flex;align-items:center;gap:10px;font-size:13px;transition:all .3s">' +
+        '<span class="bili-step-icon" style="width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#9ca3af;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">' + num + '</span>' +
+        '<span class="bili-step-label" style="color:#9ca3af;font-weight:500">' + label + '</span>' +
+        '<span class="bili-step-detail" style="color:#6b7280;font-size:12px;margin-left:4px"></span>' +
+        '</div>';
+}
+
+function biliSetStep(id, state, detail) {
+    var el = document.querySelector('.bili-step[data-step="' + id + '"]');
+    if (!el) return;
+    el.dataset.state = state;
+    var icon = el.querySelector('.bili-step-icon');
+    var label = el.querySelector('.bili-step-label');
+    var det = el.querySelector('.bili-step-detail');
+
+    if (state === 'running') {
+        icon.innerHTML = '<span style="display:inline-block;animation:biliSpin 1s linear infinite">⏳</span>';
+        icon.style.background = '#dbeafe';
+        icon.style.color = '#2563eb';
+        label.style.color = '#2563eb';
+        label.style.fontWeight = '700';
+    } else if (state === 'done') {
+        icon.innerHTML = '✓';
+        icon.style.background = '#10b981';
+        icon.style.color = '#fff';
+        label.style.color = '#065f46';
+        label.style.fontWeight = '600';
+        if (detail) det.textContent = '· ' + detail;
+    } else if (state === 'error') {
+        icon.innerHTML = '✕';
+        icon.style.background = '#ef4444';
+        icon.style.color = '#fff';
+        label.style.color = '#991b1b';
+        label.style.fontWeight = '600';
+        if (detail) { det.textContent = '· ' + detail; det.style.color = '#991b1b'; }
+    } else if (state === 'warn') {
+        icon.innerHTML = '!';
+        icon.style.background = '#f59e0b';
+        icon.style.color = '#fff';
+        label.style.color = '#92400e';
+        label.style.fontWeight = '600';
+        if (detail) { det.textContent = '· ' + detail; det.style.color = '#92400e'; }
+    } else if (state === 'skip') {
+        icon.innerHTML = '—';
+        icon.style.background = '#f3f4f6';
+        label.style.color = '#9ca3af';
+        label.style.textDecoration = 'line-through';
+        if (detail) det.textContent = '· ' + detail;
+    }
+}
+
+function biliSleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function biliResetBtn() {
+    var btn = document.getElementById('biliBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.textContent = '📺 提取内容';
+}
+
+function biliShake() {
+    var input = document.getElementById('biliUrl');
+    input.style.animation = 'biliShake .4s';
+    setTimeout(function(){ input.style.animation = ''; }, 400);
+}
+
+function biliToast(msg, type) {
+    var t = document.createElement('div');
+    var bg = type === 'warn' ? '#f59e0b' : (type === 'error' ? '#ef4444' : '#2563eb');
+    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:' + bg + ';color:#fff;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;animation:biliSlideDown .3s';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 2500);
+    setTimeout(function(){ t.remove(); }, 3000);
+}
+
+function biliCelebrate() {
+    var c = document.createElement('div');
+    c.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);font-size:64px;z-index:9998;animation:biliPop .6s ease-out;pointer-events:none';
+    c.textContent = '🎉';
+    document.body.appendChild(c);
+    setTimeout(function(){ c.style.opacity = '0'; c.style.transition = 'opacity .4s'; }, 800);
+    setTimeout(function(){ c.remove(); }, 1500);
+}
+
+function biliShowNoSubtitleTip() {
+    var progress = document.getElementById('biliProgress');
+    var tip = document.createElement('div');
+    tip.style.cssText = 'margin-top:14px;padding:14px 16px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;font-size:13px;color:#78350f;line-height:1.8';
+    tip.innerHTML = '<div style="font-weight:700;margin-bottom:6px">😢 这个视频没有字幕</div>' +
+        '<div style="margin-bottom:8px">AI 暂时无法在无字幕视频上学习。建议换一个有字幕的视频：</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        '<a href="https://search.bilibili.com/all?keyword=3Blue1Brown" target="_blank" style="background:#fff;border:1px solid #fde68a;padding:4px 12px;border-radius:12px;font-size:11px;color:#78350f;text-decoration:none">🎬 3Blue1Brown</a>' +
+        '<a href="https://search.bilibili.com/all?keyword=%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0" target="_blank" style="background:#fff;border:1px solid #fde68a;padding:4px 12px;border-radius:12px;font-size:11px;color:#78350f;text-decoration:none">🎬 吴恩达机器学习</a>' +
+        '<a href="https://search.bilibili.com/all?keyword=YC%E4%B8%AD%E5%9B%BD" target="_blank" style="background:#fff;border:1px solid #fde68a;padding:4px 12px;border-radius:12px;font-size:11px;color:#78350f;text-decoration:none">🎬 YC中国</a>' +
+        '<a href="https://search.bilibili.com/all?keyword=%E6%9D%8E%E6%B0%B8%E4%B9%90" target="_blank" style="background:#fff;border:1px solid #fde68a;padding:4px 12px;border-radius:12px;font-size:11px;color:#78350f;text-decoration:none">🎬 李永乐老师</a>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:11px;color:#a16207">💡 播放器右下角有 <span style="background:#1a1a1a;color:#fff;padding:1px 5px;border-radius:3px;font-size:10px">CC</span> 图标 = 有字幕</div>';
+    progress.appendChild(tip);
+}
+
+// ===== 通用：针对结果的追问对话 =====
+const featureChatHistories = {};
+
+async function askFollowUp(feature) {
+    const input = document.getElementById(feature + 'FollowInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    const box = document.getElementById(feature + 'FollowBox');
+    box.style.display = 'block';
+    box.innerHTML += '<div style="margin:8px 0;text-align:right"><span style="background:#8B4513;color:white;padding:8px 14px;border-radius:12px 12px 0 12px;display:inline-block;max-width:80%;text-align:left">' + msg.replace(/</g,'&lt;') + '</span></div>';
+
+    const aiDiv = document.createElement('div');
+    aiDiv.style.cssText = 'margin:8px 0';
+    aiDiv.innerHTML = '<span style="background:#f5f5f5;padding:8px 14px;border-radius:12px 12px 12px 0;display:inline-block;max-width:80%">思考中...</span>';
+    box.appendChild(aiDiv);
+    box.scrollTop = box.scrollHeight;
+
+    // 获取该功能的生成结果作为上下文
+    const resultEl = document.getElementById(feature + 'Result');
+    const resultText = resultEl ? resultEl.textContent.slice(0, 4000) : '';
+
+    if (!featureChatHistories[feature]) {
+        featureChatHistories[feature] = [{
+            role: 'system',
+            content: '你是一位耐心的AI学习导师。以下是之前为学生生成的学习内容，学生现在有疑问要问你。请结合这些内容来回答。\n\n之前生成的内容：\n' + resultText
+        }];
+    }
+    featureChatHistories[feature].push({role: 'user', content: msg});
+
+    const remaining = await checkAndRecord('chat');
+    if (remaining === false) { aiDiv.querySelector('span').textContent = '今日对话次数已用完'; return; }
+
+    const reply = await callAI(featureChatHistories[feature], text => {
+        aiDiv.querySelector('span').textContent = text;
+        box.scrollTop = box.scrollHeight;
+    });
+    featureChatHistories[feature].push({role: 'assistant', content: reply});
+    renderMath();
+}
+
+// 生成B站搜索链接
+function getBiliLink(keyword) {
+    return 'https://search.bilibili.com/all?keyword=' + encodeURIComponent(keyword + ' 讲解 教程');
+}
+
+// 让AI提取核心知识点关键词用于B站搜索
+async function extractBiliKeywords(text) {
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                task:'keywords',
+                tier:'fast',
+                messages:[{role:'user', content:'从以下学习内容中提取3个最核心的知识点关键词，用于在B站搜索相关教学视频。只输出关键词，用|分隔，不要任何其他内容。例如：金刚经 般若思想|六祖慧能 开悟|佛法 空性\n\n内容：' + text.slice(0, 2000)}],
+                max_tokens: 100,
+                temperature: 0.3
+            })
+        });
+        const data = await res.json();
+        const keywords = data.choices[0].message.content.trim().split('|').map(k => k.trim()).filter(k => k.length > 1 && k.length < 30);
+        return keywords.slice(0, 3);
+    } catch(e) {
+        return [];
+    }
+}
+
+// 构建通用的底部：再来一次按钮 + B站链接 + 追问对话框
+function buildBottomUI(feature, againBtnText, againFn, keywords) {
+    var biliHtml = '';
+    if (keywords && keywords.length > 0) {
+        biliHtml = '<div style="margin:12px 0;padding:12px;background:#fff8f0;border-radius:8px;border:1px solid #f0e0d0"><b>📺 去B站看视频讲解：</b><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
+        keywords.forEach(function(k) {
+            biliHtml += '<a href="' + getBiliLink(k) + '" target="_blank" style="padding:6px 14px;background:white;border:1px solid #ddd;border-radius:20px;text-decoration:none;color:#8B4513;font-size:13px">📺 ' + k + '</a>';
+        });
+        biliHtml += '</div></div>';
+    }
+    var html = biliHtml;
+    html += '<div style="margin-top:16px;display:flex;gap:10px;align-items:center">';
+    html += '<button onclick="' + againFn + '" style="padding:10px 24px;background:#D2691E;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">🔄 ' + againBtnText + '</button>';
+    html += '</div>';
+    html += '<div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">';
+    html += '<p style="color:#888;font-size:13px;margin-bottom:8px">💬 对以上内容有疑问？直接问我：</p>';
+    html += '<div id="' + feature + 'FollowBox" style="max-height:300px;overflow-y:auto;display:none;margin-bottom:8px;padding:8px;background:#fafafa;border-radius:8px"></div>';
+    html += '<div style="display:flex;gap:8px">';
+    html += '<input type="text" id="' + feature + 'FollowInput" placeholder="比如：第三题的B选项为什么不对？" style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px" onkeydown="if(event.key===&quot;Enter&quot;)askFollowUp(&quot;' + feature + '&quot;)">';
+    html += '<button onclick="askFollowUp(&quot;' + feature + '&quot;)" style="padding:10px 18px;background:#8B4513;color:white;border:none;border-radius:8px;cursor:pointer">发送</button>';
+    html += '</div></div>';
+    return html;
+}
+
+// 使用额度检查
+async function checkAndRecord(feature) {
+    try {
+        const res = await fetch('/api/record_usage/' + feature, {method: 'POST'});
+        const data = await res.json();
+        if (!data.allowed) {
+            alert('⏰ ' + data.msg + '\n\n升级会员可无限使用！月卡仅需9.9元');
+            return false;
+        }
+        return data.remaining;
+    } catch(e) {
+        return true; // 网络错误不阻塞
+    }
+}
+
+// 显示剩余次数提示
+function showRemaining(feature, remaining) {
+    if (remaining !== true && remaining <= 2) {
+        const names = {mindmap:'思维导图', quiz:'出题', chat:'AI答疑', example:'例题解析'};
+        const tip = document.createElement('div');
+        tip.style.cssText = 'position:fixed;top:20px;right:20px;background:#8B4513;color:white;padding:12px 20px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.2)';
+        tip.textContent = '💡 今日' + (names[feature]||feature) + '还剩 ' + remaining + ' 次';
+        document.body.appendChild(tip);
+        setTimeout(() => tip.remove(), 3000);
+    }
+}
+
+// 标签切换
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+// 调用 AI
+async function callAI(messages, onChunk) {
+    const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({task:window.__currentTask||'default', tier:window.__selectedTier, messages:messages, max_tokens:4000, temperature:0.7, stream:true})
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(l => l.startsWith('data:'));
+        for (const line of lines) {
+            const data = line.slice(5).trim();
+            if (data === '[DONE]') continue;
+            try {
+                const json = JSON.parse(data);
+                const delta = json.choices?.[0]?.delta?.content || '';
+                full += delta;
+                if (onChunk) onChunk(full);
+            } catch(e) {}
+        }
+    }
+    return full;
+}
+
+// 非流式调用（用于出题等需要完整JSON的场景）
+async function callAIFull(messages) {
+    const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({task:window.__currentTask||'default', tier:window.__selectedTier, messages:messages, max_tokens:4000, temperature:0.7})
+    });
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '生成失败，请重试';
+}
+
+// 思维导图
+async function generateMindmap() {
+    const content = getContent();
+    if (!content) { alert('请先上传课件或粘贴笔记'); return; }
+    const remaining = await checkAndRecord('mindmap');
+    if (remaining === false) return;
+    showRemaining('mindmap', remaining);
+    const btn = document.getElementById('btnMindmap');
+    btn.disabled = true;
+    const result = document.getElementById('mindmapResult');
+    result.innerHTML = '<div class="loading">正在生成思维导图</div>';
+
+    const text = await callAI([
+        {role:'system', content:`你是顶尖大学的教授，把复杂知识提炼成本质。生成思维导图，严格用 Markdown 格式：
+
+# 主题名称
+## 核心概念1
+- 要点a
+- 要点b
+  - 细节
+## 核心概念2
+- 要点c
+- 要点d
+
+规则：
+1. 第一行必须是 # 主题（只能1个）
+2. 用 ## 表示核心概念（3-5个）
+3. 用 - 表示要点，每个要点最多10字
+4. 用缩进的 - 表示子要点
+5. 不要加任何说明文字、不要markdown代码块标记、不要公式符号
+6. 每个节点纯文字，不要用$$ $ 等符号
+7. 高频考点后加 ⭐，易错点后加 ⚠️
+
+直接输出 Markdown，什么都不要多说！`},
+        {role:'user', content:'请提炼以下内容的核心知识框架（只要精华，不要废话）：\n\n' + content.slice(0, 8000)}
+    ], text => {
+        result.innerHTML = '<div class="mindmap-area" id="mindmapBox">' +
+            '<span class="mindmap-badge">🧠 智能思维导图</span>' +
+            '<div class="mindmap-toolbar">' +
+            '<button onclick="mmZoomIn()" title="放大">➕</button>' +
+            '<button onclick="mmZoomOut()" title="缩小">➖</button>' +
+            '<button onclick="mmFit()" title="适应屏幕">⛶</button>' +
+            '<button onclick="mmToggleText()" title="切换文本">📝</button>' +
+            '<button onclick="mmDownload()" title="下载">💾</button>' +
+            '</div>' +
+            '<svg class="mindmap-svg" id="mmSvg"></svg>' +
+            '<div class="mindmap-text-view" id="mmText"></div>' +
+            '</div>';
+        document.getElementById('mmText').textContent = text;
+        window.__mindmapMd = text;
+        renderMindmap(text);
+    });
+
+    // 用AI提取关键词用于B站链接
+    const mKeywords = await extractBiliKeywords(text);
+    result.innerHTML += buildBottomUI('mindmap', '重新生成思维导图', 'generateMindmap()', mKeywords);
+    featureChatHistories['mindmap'] = null;
+    renderMath();
+    btn.disabled = false;
+}
+
+// 智能出题
+async function generateQuiz(type, count) {
+    const content = getContent();
+    if (!content) { alert('请先上传课件或粘贴笔记'); return; }
+    const remaining = await checkAndRecord('quiz');
+    if (remaining === false) return;
+    showRemaining('quiz', remaining);
+    const result = document.getElementById('quizResult');
+    result.innerHTML = '<div class="loading">正在生成' + type + '，请稍候...</div>';
+
+    let prompt = '';
+    if (type === '选择题') {
+        prompt = `根据以下内容出${count}道单选题。严格按以下JSON格式输出，不要输出任何其他内容：
+[{"q":"题目文本","a":"A. 选项内容","b":"B. 选项内容","c":"C. 选项内容","d":"D. 选项内容","ans":"A","explain":"详细解析：包含正确答案分析、错误选项分析、核心知识点"}]
+注意：ans字段只填A/B/C/D中的一个字母。explain要详细。
+
+内容：${content.slice(0, 8000)}`;
+    } else if (type === '填空题') {
+        prompt = `根据以下内容出${count}道填空题。严格按以下JSON格式输出，不要输出任何其他内容：
+[{"q":"题目文本，空白处用____表示","ans":"正确答案","explain":"详细解析：答案来源、易混淆点、拓展知识"}]
+
+内容：${content.slice(0, 8000)}`;
+    } else {
+        prompt = `根据以下内容出${count}道简答题。严格按以下JSON格式输出，不要输出任何其他内容：
+[{"q":"题目文本","ans":"参考答案要点（分点列出）","explain":"详细解析：核心要点展开、答题思路"}]
+
+内容：${content.slice(0, 8000)}`;
+    }
+
+    let fullText = '';
+    await callAI([
+        {role:'system', content:'你是一位经验丰富的大学教授和出题专家。数学公式用LaTeX格式（$...$）。你必须严格按用户要求的JSON格式输出，不要加markdown代码块标记，不要加任何前缀后缀说明文字，直接输出JSON数组。'},
+        {role:'user', content: prompt}
+    ], text => {
+        fullText = text;
+        result.innerHTML = '<div class="loading">正在生成题目... 已收到 ' + text.length + ' 字</div>';
+    });
+
+    // 解析JSON（多重容错）
+    let questions = parseQuizJSON(fullText);
+    if (!questions || !questions.length) {
+        console.error('JSON parse failed, raw text:', fullText);
+        result.innerHTML = '<div style="color:#e65100;padding:16px;background:#fff8e1;border-radius:10px;margin-bottom:14px">⚠️ 题目格式解析失败，正在重试... <button onclick="generateQuiz(\''+type+'\','+count+')" style="margin-left:10px;padding:4px 12px;background:#fb7299;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">🔄 重新生成</button></div>'
+            + '<details style="margin-top:10px"><summary style="cursor:pointer;color:#666;font-size:12px">查看原始返回</summary>'
+            + '<pre style="white-space:pre-wrap;font-family:monospace;line-height:1.6;font-size:12px;padding:10px;background:#f5f5f5;border-radius:6px;margin-top:6px">' + escapeHtmlQuiz(fullText) + '</pre></details>';
+        renderMath();
+        return;
+    }
+
+    if (!questions.length) {
+        result.innerHTML = '<div style="color:#e65100;padding:16px">⚠️ 未能生成题目，请重试</div>';
+        return;
+    }
+
+    // 渲染互动题目
+    let html = '<div id="quizInteractive">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">';
+    html += '<h3 style="margin:0">📝 ' + type + ' · 共' + questions.length + '题</h3>';
+    html += '<span style="font-size:13px;color:var(--text-secondary)" id="quizProgress">已答 0/' + questions.length + '</span>';
+    html += '</div>';
+    html += '<div style="width:100%;height:6px;background:#e5e7eb;border-radius:3px;margin-bottom:20px;overflow:hidden"><div id="quizBar" style="width:0%;height:100%;background:linear-gradient(90deg,#2563eb,#7c3aed);border-radius:3px;transition:width .4s ease"></div></div>';
+
+    questions.forEach(function(item, idx) {
+        html += '<div class="quiz-item" id="qi-' + idx + '" style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;transition:border-color .3s">';
+        html += '<div style="display:flex;gap:10px;margin-bottom:14px"><span style="background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">' + (idx+1) + '</span>';
+        html += '<div style="font-size:15px;line-height:1.7;flex:1">' + escapeHtmlQuiz(item.q) + '</div></div>';
+
+        if (type === '选择题') {
+            ['a','b','c','d'].forEach(function(opt) {
+                if (!item[opt]) return;
+                var letter = opt.toUpperCase();
+                html += '<div class="quiz-option" data-idx="' + idx + '" data-opt="' + letter + '" onclick="selectOption(this,' + idx + ',\'' + letter + '\')" ';
+                html += 'style="padding:12px 16px;margin:6px 0;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;display:flex;align-items:center;gap:10px">';
+                html += '<span style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s" class="opt-circle">' + letter + '</span>';
+                html += '<span>' + escapeHtmlQuiz(item[opt].replace(/^[A-D][.．、]\s*/, '')) + '</span>';
+                html += '</div>';
+            });
+        } else if (type === '填空题') {
+            html += '<input type="text" class="fill-input" data-idx="' + idx + '" placeholder="请输入你的答案..." style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;transition:border-color .3s" onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'">';
+        } else {
+            html += '<textarea class="essay-input" data-idx="' + idx + '" placeholder="请输入你的答案..." style="width:100%;min-height:80px;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;transition:border-color .3s" onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'"></textarea>';
+        }
+
+        // 隐藏的答案和解析
+        html += '<div class="quiz-feedback" id="fb-' + idx + '" style="display:none;margin-top:14px"></div>';
+        html += '</div>';
+    });
+
+    html += '<button onclick="submitQuiz()" id="submitQuizBtn" style="width:100%;padding:16px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px">✅ 提交答案，查看批改结果</button>';
+    html += '<div id="quizScoreArea" style="display:none;margin-top:16px"></div>';
+    html += '</div>';
+
+    result.innerHTML = html;
+
+    // 存储题目数据
+    window._quizData = questions;
+    window._quizType = type;
+    window._quizAnswered = {};
+    
+    // 题目不足提示
+    if (questions.length < count) {
+        var warn = document.createElement('div');
+        warn.style.cssText = 'background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:10px';
+        warn.innerHTML = '<span>⚠️ AI返回的题目被截断，实际生成 <b>' + questions.length + '</b> 道（期望 ' + count + ' 道）</span>' +
+            '<button onclick="generateQuiz(\''+type+'\','+count+')" style="margin-left:auto;padding:4px 12px;background:#f59e0b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">🔄 重新生成</button>';
+        var interactive = document.getElementById('quizInteractive');
+        if (interactive) interactive.insertBefore(warn, interactive.firstChild.nextSibling);
+    }
+
+    renderMath();
+
+    const qKeywords = await extractBiliKeywords(fullText);
+    result.innerHTML += buildBottomUI('quiz', '再来' + count + '道' + type, "generateQuiz('" + type + "'," + count + ")", qKeywords);
+    featureChatHistories['quiz'] = null;
+}
+
+function parseQuizJSON(text) {
+    if (!text) return null;
+    var tries = [];
+    var cleaned = text.trim();
+    
+    // 尝试1: 原文直接解析
+    tries.push(cleaned);
+    
+    // 尝试2: 去掉 markdown 代码块标记
+    var c2 = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+    tries.push(c2);
+    
+    // 尝试3: 只取第一个[到最后一个]的内容
+    var s = cleaned.indexOf('[');
+    var e = cleaned.lastIndexOf(']');
+    if (s !== -1 && e > s) {
+        tries.push(cleaned.slice(s, e + 1));
+    }
+    
+    // 尝试4: 对尝试3做中文符号修正
+    if (s !== -1 && e > s) {
+        var c4 = cleaned.slice(s, e + 1);
+        c4 = c4.replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'");
+        c4 = c4.replace(/，(?=\s*["\]}\n])/g, ',');
+        tries.push(c4);
+    }
+    
+    // 尝试5: 被截断的情况 —— 用栈逐个提取完整的 {...} 对象
+    if (s !== -1) {
+        var content = cleaned.slice(s + 1); // [ 后面
+        var objs = [];
+        var depth = 0, start = -1, inStr = false, esc = false;
+        for (var j = 0; j < content.length; j++) {
+            var ch = content[j];
+            if (esc) { esc = false; continue; }
+            if (ch === '\\') { esc = true; continue; }
+            if (ch === '"') { inStr = !inStr; continue; }
+            if (inStr) continue;
+            if (ch === '{') {
+                if (depth === 0) start = j;
+                depth++;
+            } else if (ch === '}') {
+                depth--;
+                if (depth === 0 && start !== -1) {
+                    var obj = content.slice(start, j + 1);
+                    // 修正中文符号
+                    obj = obj.replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'");
+                    try {
+                        objs.push(JSON.parse(obj));
+                    } catch(e3) {}
+                    start = -1;
+                }
+            }
+        }
+        if (objs.length > 0) {
+            console.log('提取到 ' + objs.length + ' 个完整题目（可能部分被截断）');
+            return objs;
+        }
+    }
+    
+    return null;
+}
+
+function escapeHtmlQuiz(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function selectOption(el, idx, letter) {
+    // 如果已经提交了就不能再改
+    if (window._quizSubmitted) return;
+    // 取消同题其他选项
+    document.querySelectorAll('.quiz-option[data-idx="' + idx + '"]').forEach(function(opt) {
+        opt.style.background = '';
+        opt.style.borderColor = 'var(--border)';
+        opt.style.color = '';
+        opt.querySelector('.opt-circle').style.background = '';
+        opt.querySelector('.opt-circle').style.borderColor = 'var(--border)';
+        opt.querySelector('.opt-circle').style.color = '';
+    });
+    // 选中当前
+    el.style.background = '#e3f2fd';
+    el.style.borderColor = '#1976d2';
+    el.style.color = '#1565c0';
+    el.querySelector('.opt-circle').style.background = '#1976d2';
+    el.querySelector('.opt-circle').style.borderColor = '#1976d2';
+    el.querySelector('.opt-circle').style.color = 'white';
+
+    window._quizAnswered[idx] = letter;
+    updateProgress();
+}
+
+function updateProgress() {
+    var total = window._quizData.length;
+    var answered = Object.keys(window._quizAnswered).length;
+    var el = document.getElementById('quizProgress');
+    if (el) el.textContent = '已答 ' + answered + '/' + total;
+    var bar = document.getElementById('quizBar');
+    if (bar) bar.style.width = Math.round(answered / total * 100) + '%';
+    // 全部答完时提交按钮闪烁提示
+    var btn = document.getElementById('submitQuizBtn');
+    if (btn && answered === total) {
+        btn.style.background = 'linear-gradient(135deg,#2563eb,#7c3aed)';
+        btn.style.animation = 'quizPulse 1.5s infinite';
+    }
+}
+
+async function submitQuiz() {
+    if (window._quizSubmitted) return;
+    var data = window._quizData;
+    var type = window._quizType;
+    var total = data.length;
+    var correct = 0;
+    var wrongItems = [];
+
+    // 收集答案
+    if (type === '选择题') {
+        // 检查是否全部作答
+        var unanswered = [];
+        data.forEach(function(q, idx) {
+            if (!window._quizAnswered[idx]) unanswered.push(idx + 1);
+        });
+        if (unanswered.length > 0) {
+            if (!confirm('第 ' + unanswered.join('、') + ' 题还没有作答，确定提交吗？未作答的题目将算作错误。')) return;
+        }
+    } else if (type === '填空题') {
+        document.querySelectorAll('.fill-input').forEach(function(input) {
+            window._quizAnswered[input.dataset.idx] = input.value.trim();
+        });
+    } else {
+        document.querySelectorAll('.essay-input').forEach(function(input) {
+            window._quizAnswered[input.dataset.idx] = input.value.trim();
+        });
+    }
+
+    window._quizSubmitted = true;
+    document.getElementById('submitQuizBtn').style.display = 'none';
+
+    // 批改每道题
+    var fileName = document.getElementById('fileName');
+    var sourceTitle = fileName ? fileName.textContent.replace(/^📺\s*/, '').replace(/\s*\(.*\)$/, '') : '';
+
+    data.forEach(function(item, idx) {
+        var fb = document.getElementById('fb-' + idx);
+        var qi = document.getElementById('qi-' + idx);
+        var userAns = window._quizAnswered[idx] || '';
+        var correctAns = (item.ans || '').trim();
+        var isCorrect = false;
+
+        if (type === '选择题') {
+            isCorrect = userAns.toUpperCase() === correctAns.toUpperCase();
+            // 高亮选项
+            document.querySelectorAll('.quiz-option[data-idx="' + idx + '"]').forEach(function(opt) {
+                var optLetter = opt.dataset.opt;
+                if (optLetter === correctAns.toUpperCase()) {
+                    opt.style.background = '#e8f5e9';
+                    opt.style.borderColor = '#43a047';
+                    opt.style.color = '#2e7d32';
+                    opt.querySelector('.opt-circle').style.background = '#43a047';
+                    opt.querySelector('.opt-circle').style.borderColor = '#43a047';
+                    opt.querySelector('.opt-circle').style.color = 'white';
+                } else if (optLetter === userAns && !isCorrect) {
+                    opt.style.background = '#ffebee';
+                    opt.style.borderColor = '#e53935';
+                    opt.style.color = '#c62828';
+                    opt.querySelector('.opt-circle').style.background = '#e53935';
+                    opt.querySelector('.opt-circle').style.borderColor = '#e53935';
+                    opt.querySelector('.opt-circle').style.color = 'white';
+                }
+            });
+        } else if (type === '填空题') {
+            // 填空题简单匹配
+            var normUser = userAns.replace(/\s+/g,'').toLowerCase();
+            var normCorrect = correctAns.replace(/\s+/g,'').toLowerCase();
+            isCorrect = normUser === normCorrect || normCorrect.includes(normUser) && normUser.length > 0;
+        } else {
+            // 简答题不自动判对错，显示参考答案让用户自评
+            isCorrect = null;
+        }
+
+        if (isCorrect === true) {
+            correct++;
+            qi.style.borderColor = '#43a047';
+            fb.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#2e7d32;font-weight:700;font-size:15px;margin-bottom:10px">✅ 回答正确！</div>';
+        } else if (isCorrect === false) {
+            qi.style.borderColor = '#e53935';
+            fb.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#c62828;font-weight:700;font-size:15px;margin-bottom:10px">❌ 回答错误</div>'
+                + '<div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;font-size:14px;margin-bottom:8px"><b style="color:#2e7d32">正确答案：</b>' + escapeHtmlQuiz(correctAns) + '</div>'
+                + (userAns ? '<div style="background:#ffebee;padding:10px 14px;border-radius:8px;font-size:14px;margin-bottom:8px"><b style="color:#c62828">你的答案：</b>' + escapeHtmlQuiz(userAns) + '</div>' : '');
+            wrongItems.push({item: item, userAns: userAns, idx: idx});
+        } else {
+            // 简答题
+            qi.style.borderColor = '#ff9800';
+            fb.innerHTML = '<div style="color:#e65100;font-weight:700;font-size:15px;margin-bottom:10px">📋 参考答案</div>'
+                + '<div style="background:#fff8e1;padding:10px 14px;border-radius:8px;font-size:14px;margin-bottom:8px;white-space:pre-wrap;line-height:1.8">' + escapeHtmlQuiz(correctAns) + '</div>'
+                + '<div style="display:flex;gap:8px;margin-top:8px">'
+                + '<button onclick="selfJudge(this,' + idx + ',true)" style="padding:6px 16px;border:1.5px solid #43a047;background:#e8f5e9;color:#2e7d32;border-radius:8px;cursor:pointer;font-size:13px">✅ 我答对了</button>'
+                + '<button onclick="selfJudge(this,' + idx + ',false)" style="padding:6px 16px;border:1.5px solid #e53935;background:#ffebee;color:#c62828;border-radius:8px;cursor:pointer;font-size:13px">❌ 我答错了</button>'
+                + '</div>';
+        }
+
+        // 解析折叠
+        if (item.explain) {
+            fb.innerHTML += '<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--primary);font-size:13px;font-weight:600">📖 查看详细解析</summary>'
+                + '<div style="padding:12px 0;font-size:13px;line-height:1.8;color:var(--text-secondary);white-space:pre-wrap">' + escapeHtmlQuiz(item.explain) + '</div></details>';
+        }
+
+        fb.style.display = 'block';
+    });
+
+    // 逐题动画揭晓
+    var allItems = document.querySelectorAll('.quiz-item');
+    for (var i = 0; i < allItems.length; i++) {
+        (function(item, delay){
+            setTimeout(function(){
+                item.style.transform = 'scale(1.01)';
+                item.style.transition = 'transform .2s, border-color .3s';
+                setTimeout(function(){ item.style.transform = 'scale(1)'; }, 200);
+            }, delay);
+        })(allItems[i], i * 150);
+    }
+
+    // 滚动到第一题的反馈
+    setTimeout(function(){
+        var firstFb = document.getElementById('fb-0');
+        if (firstFb) firstFb.scrollIntoView({behavior:'smooth', block:'center'});
+    }, allItems.length * 150 + 300);
+
+    // 显示总分
+    var scoreArea = document.getElementById('quizScoreArea');
+    if (type !== '简答题') {
+        var pct = Math.round(correct / total * 100);
+        var color = pct >= 80 ? '#2e7d32' : pct >= 60 ? '#e65100' : '#c62828';
+        var emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📚';
+        scoreArea.innerHTML = '<div style="background:var(--card);border:2px solid ' + color + ';border-radius:14px;padding:24px;text-align:center">'
+            + '<div style="font-size:48px;margin-bottom:8px">' + emoji + '</div>'
+            + '<div style="font-size:28px;font-weight:900;color:' + color + '">' + correct + ' / ' + total + '</div>'
+            + '<div style="font-size:14px;color:var(--text-secondary);margin-top:4px">正确率 ' + pct + '%</div>'
+            + (wrongItems.length > 0 ? '<div style="font-size:13px;color:#e65100;margin-top:8px">' + wrongItems.length + ' 道错题已自动加入错题本 📕</div>' : '<div style="font-size:13px;color:#2e7d32;margin-top:8px">全部正确，太棒了！</div>')
+            + '</div>';
+        scoreArea.style.display = 'block';
+        // 庆祝动画
+        if (pct >= 60) {
+            setTimeout(function(){
+                var c = document.createElement('div');
+                c.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);font-size:72px;z-index:9998;animation:biliPop .6s ease-out;pointer-events:none';
+                c.textContent = pct >= 80 ? '🎉' : '💪';
+                document.body.appendChild(c);
+                setTimeout(function(){ c.style.opacity='0'; c.style.transition='opacity .4s'; }, 1000);
+                setTimeout(function(){ c.remove(); }, 1500);
+            }, allItems.length * 150 + 500);
+        }
+
+        // 自动保存错题
+        wrongItems.forEach(function(w) {
+            fetch('/api/wrong_answers', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    question: w.item.q + (w.item.a ? '\n' + w.item.a + '\n' + w.item.b + '\n' + w.item.c + '\n' + w.item.d : ''),
+                    correct_answer: w.item.ans,
+                    user_answer: w.userAns,
+                    explanation: w.item.explain || '',
+                    source_title: sourceTitle
+                })
+            });
+        });
+    } else {
+        scoreArea.innerHTML = '<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:14px;padding:20px;text-align:center;font-size:14px;color:#e65100">简答题请自行对照参考答案判断，点击"我答错了"会自动加入错题本</div>';
+        scoreArea.style.display = 'block';
+    }
+
+    renderMath();
+}
+
+// 简答题自我评判
+function selfJudge(btn, idx, isCorrect) {
+    var qi = document.getElementById('qi-' + idx);
+    var item = window._quizData[idx];
+    var userAns = window._quizAnswered[idx] || '';
+    var btns = btn.parentElement;
+    btns.innerHTML = isCorrect
+        ? '<span style="color:#2e7d32;font-weight:600">✅ 已标记为正确</span>'
+        : '<span style="color:#c62828;font-weight:600">❌ 已标记为错误，已加入错题本</span>';
+
+    qi.style.borderColor = isCorrect ? '#43a047' : '#e53935';
+
+    if (!isCorrect) {
+        var fileName = document.getElementById('fileName');
+        var sourceTitle = fileName ? fileName.textContent.replace(/^📺\s*/, '').replace(/\s*\(.*\)$/, '') : '';
+        fetch('/api/wrong_answers', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                question: item.q,
+                correct_answer: item.ans,
+                user_answer: userAns,
+                explanation: item.explain || '',
+                source_title: sourceTitle
+            })
+        });
+    }
+}
+
+// AI 答疑聊天
+async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    const remaining = await checkAndRecord('chat');
+    if (remaining === false) return;
+    showRemaining('chat', remaining);
+    input.value = '';
+    const content = getContent();
+
+    const box = document.getElementById('chatBox');
+    box.innerHTML += '<div class="msg msg-user"><div class="bubble">' + msg.replace(/</g,'&lt;') + '</div></div>';
+
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'msg msg-ai';
+    aiMsg.innerHTML = '<div class="bubble">思考中...</div>';
+    box.appendChild(aiMsg);
+    box.scrollTop = box.scrollHeight;
+
+    if (chatHistory.length === 0 && content) {
+        chatHistory.push({role:'system', content:'你是一个智能学习导师。以下是用户的课件/笔记内容，请基于这些内容回答问题。如果问题超出课件范围，可以结合你的知识回答，但要注明。\n\n课件内容：\n' + content.slice(0, 6000)});
+    } else if (chatHistory.length === 0) {
+        chatHistory.push({role:'system', content:'你是一个智能学习导师，帮助学生解答学习问题。回答要清晰、有条理。'});
+    }
+    chatHistory.push({role:'user', content: msg});
+
+    const reply = await callAI(chatHistory, text => {
+        aiMsg.querySelector('.bubble').textContent = text;
+        box.scrollTop = box.scrollHeight;
+    });
+
+    chatHistory.push({role:'assistant', content: reply});
+    box.scrollTop = box.scrollHeight;
+}
+
+// 例题图片处理
+let exampleImageBase64 = "";
+function handleExampleImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('exampleImageName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => { exampleImageBase64 = e.target.result; };
+    reader.readAsDataURL(file);
+}
+
+// 例题举一反三 - 核心功能
+async function analyzeExample() {
+    const remaining = await checkAndRecord('example');
+    if (remaining === false) return;
+    showRemaining('example', remaining);
+    const textInput = document.getElementById('exampleInput').value.trim();
+    const courseContent = fileContent; // 如果上传了课件PDF，也一起参考
+    
+    if (!textInput && !exampleImageBase64) {
+        alert('请粘贴例题文字或上传例题图片');
+        return;
+    }
+    
+    const result = document.getElementById('exampleResult');
+    result.innerHTML = '<div class="loading">AI 正在深度分析例题，这可能需要30-60秒...</div>';
+    
+    let userMsg = "";
+    if (textInput) {
+        userMsg = "以下是老师给的例题，请按要求进行深度解析和举一反三：\n\n" + textInput;
+    }
+    if (exampleImageBase64) {
+        userMsg += "\n\n[用户还上传了一张例题图片，请结合分析]";
+    }
+    if (courseContent) {
+        userMsg += "\n\n以下是相关课件内容供参考：\n" + courseContent.slice(0, 6000);
+    }
+    
+    const systemPrompt = `你是一位拥有20年教学经验的顶级大学教授，同时也是一位天才级的知识讲解者。你的讲解风格是：把最复杂的知识用最通俗、最温暖的方式讲清楚，就像给一位80岁的老奶奶讲故事一样——用生活中的比喻、形象的类比、和循序渐进的逻辑，让任何人都能听懂。
+
+当学生给你一道老师的例题时，你必须严格按照以下结构回答：
+
+═══════════════════════════════
+📚 第一部分：知识点通透讲解
+═══════════════════════════════
+先不要急着做题。首先识别这道题涉及了哪些核心知识点，然后用"讲故事"的方式把每个知识点讲透：
+- 这个知识点是什么？用一句大白话概括
+- 打一个生活中的比方，让人秒懂
+- 它的数学/科学本质是什么？给出严格定义和公式
+- 这个知识点最容易踩的坑是什么？
+
+═══════════════════════════════
+✏️ 第二部分：原题详细解析
+═══════════════════════════════
+现在来解这道原题：
+- 审题：这道题在考什么？题目的关键条件是什么？
+- 思路：解题的核心思路是什么？为什么要这样想？
+- 过程：写出完整、严谨的解题步骤，每一步都解释为什么这么做
+- 总结：这道题的解题套路/模板是什么？遇到类似题怎么快速识别？
+
+═══════════════════════════════
+🔄 第三部分：举一反三（3道变式题）
+═══════════════════════════════
+基于原题，生成3道由易到难的变式题：
+【变式1 - 基础变形】：换个数字或简单条件变化，考察同样的核心方法
+【变式2 - 综合提升】：结合其他知识点，需要多步推理
+【变式3 - 考试难度】：模拟真实考试中可能出现的难度和形式
+
+每道变式题都要给出：
+- 完整题目
+- 详细解题过程
+- 与原题的区别在哪里，额外考察了什么
+
+请用 Markdown 格式排版，多用 emoji 让内容生动易读。数学公式直接用文字表述即可。`;
+
+    const text = await callAI([
+        {role: 'system', content: systemPrompt},
+        {role: 'user', content: userMsg}
+    ], text => {
+        result.innerHTML = '<div class="result-card" style="line-height:2;white-space:pre-wrap;font-size:14px;padding:24px">' + text.replace(/\n/g, '<br>') + '</div>';
+    });
+}
+
+</script>
+
+<!-- Markmap 思维导图库 -->
+
+
+
+<script>
+window.__mm = null;
+window.__mmTransformer = null;
+
+function renderMindmap(text){
+  try {
+    var tree = parseMarkdownToTree(text);
+    if(!tree){
+      var box = document.getElementById('mindmapBox');
+      if(box) box.classList.add('text-mode');
+      return;
+    }
+    var svg = document.getElementById('mmSvg');
+    if(!svg) return;
+    drawMindmap(svg, tree);
+    console.log('思维导图渲染成功');
+  } catch(e){
+    console.error('渲染失败:', e);
+    var box2 = document.getElementById('mindmapBox');
+    if(box2) box2.classList.add('text-mode');
+  }
+}
+
+function parseMarkdownToTree(text){
+  var lines = text.split('\n').filter(function(l){return l.trim()});
+  var root = null;
+  var stack = [];
+  for(var i=0; i<lines.length; i++){
+    var line = lines[i];
+    var level = 0, content = '', m;
+    if((m = line.match(/^(#+)\s+(.+)$/))){
+      level = m[1].length;
+      content = m[2].trim();
+    } else if((m = line.match(/^(\s*)[-*+]\s+(.+)$/))){
+      level = 3 + Math.floor(m[1].length / 2);
+      content = m[2].trim();
+    } else continue;
+    var node = {text: content, children: [], level: level};
+    if(!root){
+      root = node;
+      stack = [{level: level, node: node}];
+    } else {
+      while(stack.length > 0 && stack[stack.length-1].level >= level) stack.pop();
+      if(stack.length === 0){
+        root.children.push(node);
+      } else {
+        stack[stack.length-1].node.children.push(node);
+      }
+      stack.push({level: level, node: node});
+    }
+  }
+  return root;
+}
+
+function drawMindmap(svg, root){
+  svg.innerHTML = '';
+  var colors = ['#2563eb','#7c3aed','#ec4899','#f97316','#10b981','#06b6d4'];
+  function countLeaves(n){
+    if(!n.children || n.children.length===0) return 1;
+    var c = 0;
+    for(var i=0;i<n.children.length;i++) c += countLeaves(n.children[i]);
+    return c;
+  }
+  var total = countLeaves(root);
+  var leafH = 32;
+  var startY = 40;
+  var leafIdx = {v: 0};
+  function layout(n, depth){
+    if(!n.children || n.children.length === 0){
+      n.x = 120 + depth * 180;
+      n.y = startY + leafIdx.v * leafH + leafH/2;
+      leafIdx.v++;
+      return;
+    }
+    for(var i=0;i<n.children.length;i++) layout(n.children[i], depth+1);
+    n.x = 120 + depth * 180;
+    var ys = n.children.map(function(c){return c.y});
+    n.y = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+  }
+  layout(root, 0);
+  var allNodes = [];
+  function collect(n){allNodes.push(n); if(n.children) for(var i=0;i<n.children.length;i++) collect(n.children[i]);}
+  collect(root);
+  var maxX = 0, maxY = 0;
+  for(var i=0;i<allNodes.length;i++){
+    if(allNodes[i].x > maxX) maxX = allNodes[i].x;
+    if(allNodes[i].y > maxY) maxY = allNodes[i].y;
+  }
+  var W = maxX + 180, H = maxY + 40;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', '100%');
+  svg.style.height = Math.max(400, H) + 'px';
+  function drawConn(n){
+    if(!n.children) return;
+    for(var i=0;i<n.children.length;i++){
+      var c = n.children[i];
+      var path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      var mx = (n.x + c.x) / 2;
+      var d = 'M '+n.x+' '+n.y+' C '+mx+' '+n.y+' '+mx+' '+c.y+' '+c.x+' '+c.y;
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', colors[(c.level || 1) % colors.length]);
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.5');
+      svg.appendChild(path);
+      drawConn(c);
+    }
+  }
+  drawConn(root);
+  function drawNode(n, isRoot){
+    var color = isRoot ? '#1a1a2e' : colors[(n.level || 1) % colors.length];
+    var textLen = (n.text||'').length;
+    var rectW = Math.max(60, Math.min(170, textLen * 14 + 24));
+    var rectH = 28;
+    var rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', n.x - rectW/2);
+    rect.setAttribute('y', n.y - rectH/2);
+    rect.setAttribute('width', rectW);
+    rect.setAttribute('height', rectH);
+    rect.setAttribute('rx', '14');
+    rect.setAttribute('fill', isRoot ? color : 'white');
+    rect.setAttribute('stroke', color);
+    rect.setAttribute('stroke-width', '2');
+    svg.appendChild(rect);
+    var text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', n.x);
+    text.setAttribute('y', n.y + 5);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('font-size', isRoot ? '14' : '12');
+    text.setAttribute('font-weight', isRoot ? '700' : '500');
+    text.setAttribute('fill', isRoot ? 'white' : '#0a0a0a');
+    var short = (n.text||'').length > 12 ? n.text.substring(0,12)+'..' : n.text;
+    text.textContent = short;
+    svg.appendChild(text);
+    if(n.children) for(var i=0;i<n.children.length;i++) drawNode(n.children[i], false);
+  }
+  drawNode(root, true);
+}
+
+function mmZoomIn(){ var s=document.getElementById('mmSvg'); if(s){var z=parseFloat(s.dataset.zoom||'1')*1.25; s.dataset.zoom=z; s.style.transform='scale('+z+')';s.style.transformOrigin='top left'} }
+function mmZoomOut(){ var s=document.getElementById('mmSvg'); if(s){var z=parseFloat(s.dataset.zoom||'1')*0.8; s.dataset.zoom=z; s.style.transform='scale('+z+')';s.style.transformOrigin='top left'} }
+function mmFit(){ var s=document.getElementById('mmSvg'); if(s){s.dataset.zoom='1'; s.style.transform='none'} }
+function mmToggleText(){ var b=document.getElementById('mindmapBox'); if(b) b.classList.toggle('text-mode'); }
+function mmDownload(){
+  var svg = document.getElementById('mmSvg');
+  if(!svg) return;
+  var source = new XMLSerializer().serializeToString(svg);
+  var blob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'mindmap_'+Date.now()+'.svg'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function parseMarkdownToTree(text){
+  var lines = text.split('\n').filter(function(l){return l.trim()});
+  var root = null;
+  var stack = [];
+  for(var i=0; i<lines.length; i++){
+    var line = lines[i];
+    var level = 0, content = '', m;
+    if((m = line.match(/^(#+)\s+(.+)$/))){
+      level = m[1].length;
+      content = m[2].trim();
+    } else if((m = line.match(/^(\s*)[-*+]\s+(.+)$/))){
+      level = 3 + Math.floor(m[1].length / 2);
+      content = m[2].trim();
+    } else continue;
+    var node = {text: content, children: [], level: level};
+    if(!root){
+      root = node;
+      stack = [{level: level, node: node}];
+    } else {
+      while(stack.length > 0 && stack[stack.length-1].level >= level) stack.pop();
+      if(stack.length === 0){
+        root.children.push(node);
+      } else {
+        stack[stack.length-1].node.children.push(node);
+      }
+      stack.push({level: level, node: node});
+    }
+  }
+  return root;
+}
+
+function drawMindmap(svg, root){
+  svg.innerHTML = '';
+  var colors = ['#2563eb','#7c3aed','#ec4899','#f97316','#10b981','#06b6d4'];
+  function countLeaves(n){
+    if(!n.children || n.children.length===0) return 1;
+    var c = 0;
+    for(var i=0;i<n.children.length;i++) c += countLeaves(n.children[i]);
+    return c;
+  }
+  var total = countLeaves(root);
+  var leafH = 32;
+  var startY = 40;
+  var leafIdx = {v: 0};
+  function layout(n, depth){
+    if(!n.children || n.children.length === 0){
+      n.x = 120 + depth * 180;
+      n.y = startY + leafIdx.v * leafH + leafH/2;
+      leafIdx.v++;
+      return;
+    }
+    for(var i=0;i<n.children.length;i++) layout(n.children[i], depth+1);
+    n.x = 120 + depth * 180;
+    var ys = n.children.map(function(c){return c.y});
+    n.y = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+  }
+  layout(root, 0);
+  var allNodes = [];
+  function collect(n){allNodes.push(n); if(n.children) for(var i=0;i<n.children.length;i++) collect(n.children[i]);}
+  collect(root);
+  var maxX = 0, maxY = 0;
+  for(var i=0;i<allNodes.length;i++){
+    if(allNodes[i].x > maxX) maxX = allNodes[i].x;
+    if(allNodes[i].y > maxY) maxY = allNodes[i].y;
+  }
+  var W = maxX + 180, H = maxY + 40;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', '100%');
+  svg.style.height = Math.max(400, H) + 'px';
+  function drawConn(n){
+    if(!n.children) return;
+    for(var i=0;i<n.children.length;i++){
+      var c = n.children[i];
+      var path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      var mx = (n.x + c.x) / 2;
+      var d = 'M '+n.x+' '+n.y+' C '+mx+' '+n.y+' '+mx+' '+c.y+' '+c.x+' '+c.y;
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', colors[(c.level || 1) % colors.length]);
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.5');
+      svg.appendChild(path);
+      drawConn(c);
+    }
+  }
+  drawConn(root);
+  function drawNode(n, isRoot){
+    var color = isRoot ? '#1a1a2e' : colors[(n.level || 1) % colors.length];
+    var textLen = (n.text||'').length;
+    var rectW = Math.max(60, Math.min(170, textLen * 14 + 24));
+    var rectH = 28;
+    var rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', n.x - rectW/2);
+    rect.setAttribute('y', n.y - rectH/2);
+    rect.setAttribute('width', rectW);
+    rect.setAttribute('height', rectH);
+    rect.setAttribute('rx', '14');
+    rect.setAttribute('fill', isRoot ? color : 'white');
+    rect.setAttribute('stroke', color);
+    rect.setAttribute('stroke-width', '2');
+    svg.appendChild(rect);
+    var text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', n.x);
+    text.setAttribute('y', n.y + 5);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('font-size', isRoot ? '14' : '12');
+    text.setAttribute('font-weight', isRoot ? '700' : '500');
+    text.setAttribute('fill', isRoot ? 'white' : '#0a0a0a');
+    var short = (n.text||'').length > 12 ? n.text.substring(0,12)+'..' : n.text;
+    text.textContent = short;
+    svg.appendChild(text);
+    if(n.children) for(var i=0;i<n.children.length;i++) drawNode(n.children[i], false);
+  }
+  drawNode(root, true);
+}
+
+function mmZoomIn(){ var s=document.getElementById('mmSvg'); if(s){var z=parseFloat(s.dataset.zoom||'1')*1.25; s.dataset.zoom=z; s.style.transform='scale('+z+')';s.style.transformOrigin='top left'} }
+function mmZoomOut(){ var s=document.getElementById('mmSvg'); if(s){var z=parseFloat(s.dataset.zoom||'1')*0.8; s.dataset.zoom=z; s.style.transform='scale('+z+')';s.style.transformOrigin='top left'} }
+function mmFit(){ var s=document.getElementById('mmSvg'); if(s){s.dataset.zoom='1'; s.style.transform='none'} }
+function mmToggleText(){ var b=document.getElementById('mindmapBox'); if(b) b.classList.toggle('text-mode'); }
+function mmDownload(){
+  var svg = document.getElementById('mmSvg');
+  if(!svg) return;
+  var source = new XMLSerializer().serializeToString(svg);
+  var blob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'mindmap_'+Date.now()+'.svg'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function mmDownload(){
+  const svg = document.getElementById('mmSvg');
+  if(!svg) return;
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  const blob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mindmap_' + Date.now() + '.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+
+<script>
+function handleGuestLimit(data) {
+    if (data && data.error === 'guest_limit') {
+        showLoginModal(data.message || '游客每天可免费体验3次，登录后不限次使用');
+        return true;
+    }
+    return false;
+}
+function showLoginModal(msg) {
+    var existing = document.getElementById('guestLoginModal');
+    if (existing) return;
+    var mask = document.createElement('div');
+    mask.id = 'guestLoginModal';
+    mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;animation:guestFadeIn .25s';
+    mask.innerHTML = '<div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:guestPop .3s">' +
+      '<div style="font-size:52px;margin-bottom:12px">🎓</div>' +
+      '<h3 style="font-size:20px;font-weight:800;margin:0 0 10px;letter-spacing:-0.02em">体验次数用完啦</h3>' +
+      '<p style="color:#6b7280;font-size:14px;margin:0 0 20px;line-height:1.6">' + (msg || '登录后可无限使用 AI 导师') + '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      '<a href="/login" style="background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px">🔐 登录账号</a>' +
+      '<a href="/register" style="background:#fff;border:1.5px solid #e5e7eb;color:#0a0a0a;padding:12px 24px;border-radius:10px;font-weight:600;text-decoration:none;font-size:14px">✨ 免费注册（30秒）</a>' +
+      '<button onclick="document.getElementById(\'guestLoginModal\').remove()" style="margin-top:6px;background:none;border:none;color:#9ca3af;cursor:pointer;font-size:12px;padding:6px">暂不登录</button>' +
+      '</div>' +
+      '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;font-size:11px;color:#9ca3af">登录后解锁：顶级模型 · 错题本 · 学习数据 · 无限使用</div>' +
+      '</div>';
+    document.body.appendChild(mask);
+    mask.addEventListener('click', function(e){ if(e.target===mask) mask.remove(); });
+}
+</script>
+<style>
+@keyframes guestFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes guestPop { from{transform:scale(.85);opacity:0} to{transform:scale(1);opacity:1} }
+</style>
+
+
+<script>
+// 拦截 /api/ai 的 429 响应，自动弹登录框
+(function(){
+  if (window.__origFetch) return;
+  window.__origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const res = await window.__origFetch(url, opts);
+    if (res.status === 429 && typeof url === 'string' && url.indexOf('/api/ai') === 0) {
+      try {
+        const clone = res.clone();
+        const data = await clone.json();
+        if (data && data.error === 'guest_limit') {
+          if (typeof showLoginModal === 'function') {
+            showLoginModal(data.message);
+          }
+        }
+      } catch(e) {}
+    }
+    return res;
+  };
+})();
+</script>
+
+{% endblock %}

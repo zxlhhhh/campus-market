@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}找搭子{% endblock %}
+{% block extra_css %}
+<style>
+.buddy-wrap{max-width:900px;margin:0 auto;padding:0 20px}
+.buddy-header{text-align:center;margin-bottom:24px}
+.buddy-header h1{font-size:28px;font-weight:700}
+.cats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.cat-tag{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:1.5px solid var(--border);color:var(--text-secondary);background:var(--card);transition:all .2s}
+.cat-tag:hover,.cat-tag.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.post-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;transition:all .2s;text-decoration:none;display:block;color:var(--text)}
+.post-card:hover{border-color:var(--accent);box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+.post-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#e8f5e9;color:#2e7d32}
+.post-meta{color:var(--text-secondary);font-size:12px;margin-top:8px}
+.top-btns{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.btn-pub{padding:10px 28px;background:var(--accent);color:var(--primary);border-radius:8px;font-weight:700;text-decoration:none;font-size:14px}
+.btn-msg{padding:10px 28px;background:var(--primary);color:#fff;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px}
+@media(max-width:600px){
+.buddy-wrap{padding:0 12px}
+.buddy-header h1{font-size:22px}
+.cats{gap:4px}
+.cat-tag{padding:6px 12px;font-size:12px}
+.post-card{padding:14px}
+.top-btns{flex-direction:column;gap:8px}
+.btn-pub,.btn-msg{text-align:center;padding:10px}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="buddy-wrap">
+</div>
+<div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%) !important;padding:52px 20px 46px !important;text-align:center !important;position:relative;overflow:hidden;margin:-24px -9999px 24px !important;padding-left:9999px !important;padding-right:9999px !important">
+    <div style="position:absolute;top:-300px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(16,185,129,0.18) 0%,transparent 60%);pointer-events:none;z-index:0"></div>
+    <div style="position:absolute;bottom:-200px;left:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 70%);pointer-events:none;z-index:0"></div>
+    <div style="position:relative;z-index:1;max-width:800px;margin:0 auto;text-align:center">
+        <span style="display:inline-block;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:18px;letter-spacing:0.15em;border:1px solid rgba(255,255,255,0.12)">🤝 FIND BUDDY</span>
+        <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:48px !important;font-weight:900 !important;background:linear-gradient(135deg,#fff 0%,#10b981 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent !important;margin:0 0 12px 0 !important;letter-spacing:-0.02em;line-height:1.1">找搭子</h1>
+        <p style="color:rgba(255,255,255,0.7);font-size:14px;letter-spacing:0.05em;font-weight:400;margin:0 !important">找志同道合的伙伴<span style="color:#10b981;margin:0 10px">·</span>一起学习、运动、吃饭</p>
+    </div>
+</div>
+<div class="buddy-wrap">
+<div class="top-btns"><a href="/buddy/new" class="btn-pub">+ 发布找搭子</a><a href="/buddy/my_messages" class="btn-msg">💬 我的消息</a></div>
+<div class="cats">
+<a href="/buddy" class="cat-tag {{ 'active' if not current_category }}">全部</a>
+{% for c in categories %}<a href="/buddy?category={{ c }}" class="cat-tag {{ 'active' if current_category==c }}">{{ c }}</a>{% endfor %}
+</div>
+{% for p in posts %}
+<a href="/buddy/{{ p.id }}" class="post-card">
+<div style="display:flex;justify-content:space-between;align-items:start">
+<div><span class="post-tag">{{ p.category }}</span> <b style="font-size:16px;margin-left:8px">{{ p.title }}</b></div>
+<span style="font-size:12px;color:{{ '#2e7d32' if p.status=='招募中' else '#999' }}">{{ p.status }}</span>
+</div>
+<p style="margin:10px 0;font-size:14px;color:#555;line-height:1.6">{{ p.content[:100] }}{{ '...' if p.content|length>100 }}</p>
+<div class="post-meta">👤 {{ p.user.username }} · 📍 {{ p.location or '未指定' }} · 🕐 {{ p.time_info or '待定' }} · 👥 需{{ p.max_people }}人 · {{ p.created_at.strftime('%m-%d %H:%M') }}</div>
+</a>
+{% endfor %}
+{% if not posts %}<div style="text-align:center;padding:60px;color:var(--text-secondary)">暂无搭子帖，快来发布第一个吧！</div>{% endif %}
+</div>
+{% endblock %}

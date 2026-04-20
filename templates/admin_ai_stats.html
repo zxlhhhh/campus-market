@@ -1,0 +1,20 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<h2>🤖 AI 导师使用统计</h2>
+    <div class="ad-stats" style="margin-bottom:24px">
+      <div class="ad-stat blue"><p class="num">{{ ai_users }}</p><p class="label">AI用户总数</p></div>
+      <div class="ad-stat green"><p class="num">{{ daily_usages|length }}</p><p class="label">使用记录</p></div>
+    </div>
+    <h3 class="sec-ttl">📈 使用记录（最近100条）</h3>
+    <table class="ad-table">
+      <tr><th>用户</th><th>日期</th><th>对话数</th><th>Token消耗</th></tr>
+      {% for d in daily_usages %}
+      <tr>
+        <td>用户 #{{ d.user_id }}</td>
+        <td>{{ d.date }}</td>
+        <td>{{ d.chat_count or 0 }}</td>
+        <td>{{ d.token_used or 0 }}</td>
+      </tr>
+      {% else %}<tr><td colspan="4" class="empty">暂无使用记录</td></tr>{% endfor %}
+    </table>
+{% endblock %}

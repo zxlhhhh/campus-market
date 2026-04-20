@@ -9,3 +9,14 @@ venv/
 setup_project.py
 upgrade_project.py
 prepare_deploy.py
+# 备份文件
+*.bak
+*.bak_*
+*.bak2
+*_backup.py
+*.before_envvar
+templates_backup/
+upgrade.sh
+
+# 临时/敏感文件
+*.log

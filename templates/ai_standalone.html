@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek 导师 - 免费学习工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{--primary:#1a1a2e;--accent:#c9a55c;--bg:#f5f4f0;--card:#fff;--border:#e5e2d9;--text:#1a1a1a;--text-secondary:#6b7280;--sans:'Noto Sans SC',system-ui,sans-serif;--serif:'Noto Serif SC',serif;--success:#43a047;--danger:#e53935}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6}
+.top-bar{background:var(--primary);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top-bar .logo{color:var(--accent);font-family:var(--serif);font-size:20px;font-weight:700;text-decoration:none}
+.top-bar .links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:6px;transition:all .2s}
+.top-bar .links a:hover{color:#fff;background:rgba(255,255,255,0.1)}
+.container{max-width:900px;margin:0 auto;padding:24px 20px}
+.header{text-align:center;margin-bottom:30px}
+.header h1{font-family:var(--serif);font-size:32px;font-weight:700;margin-bottom:8px}
+.header p{color:var(--text-secondary);font-size:15px}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;background:var(--card);margin-bottom:20px}
+.upload-zone:hover{border-color:var(--accent);background:#faf8f3}
+.upload-zone input{display:none}
+.file-info{display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:20px}
+.file-info .name{flex:1;font-size:14px;font-weight:500}
+.file-info .remove{color:var(--danger);cursor:pointer;font-size:18px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-secondary);border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--primary);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--primary)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.action-btn{padding:10px 22px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.action-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.action-btn.accent{background:var(--accent);color:var(--primary)}
+.loading{text-align:center;padding:40px;color:var(--text-secondary);font-size:14px}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.chat-box{height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--card);margin-bottom:12px}
+.msg{margin-bottom:12px;display:flex}
+.msg-user{justify-content:flex-end}
+.msg-user .bubble{background:var(--primary);color:#fff;border-radius:12px 12px 0 12px}
+.msg-ai .bubble{background:#f0efeb;border-radius:12px 12px 12px 0}
+.bubble{padding:10px 16px;max-width:80%;font-size:14px;line-height:1.7}
+.chat-input-row{display:flex;gap:8px}
+.chat-input-row input{flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none}
+.chat-input-row input:focus{border-color:var(--accent)}
+.chat-input-row button{padding:12px 24px;background:var(--primary);color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer}
+.bili-section{background:#fff8f0;border:1px solid #ffe0b2;border-radius:12px;padding:16px;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="top-bar">
+    <a href="/ai" class="logo">DeepSeek 导师</a>
+    <div class="links">
+        {% if current_user.is_authenticated %}
+        <a href="/ai">DeepSeek导师</a>
+        <a href="/wrong_book">错题本</a>
+        <a href="/study_dashboard">学习数据</a>
+        <span style="color:var(--accent);font-size:13px;padding:6px 10px">{{ current_user.name if current_user.name is defined else current_user.username }}</span>
+        <a href="/ai/logout" style="color:rgba(255,255,255,0.4);font-size:12px">退出</a>
+        {% else %}
+        <a href="/ai/login">登录</a>
+        <a href="/ai/register" style="background:rgba(255,255,255,0.1);font-weight:600">注册</a>
+        {% endif %}
+    </div>
+</div>
+<div class="container">
+    <div class="header">
+        <h1>DeepSeek 导师</h1>
+        <p>上传课件或粘贴 B 站网课链接，AI 帮你生成思维导图、出题、答疑</p>
+    </div>
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md" onchange="handleFile(this)">
+        <div style="font-size:40px;margin-bottom:10px">📚</div>
+        <p>点击上传课件（PDF、TXT）</p>
+    </div>
+    <div class="file-info" id="fileInfo">
+        <span class="name" id="fileName"></span>
+        <span class="remove" onclick="removeFile()">✕</span>
+    </div>
+    <div class="bili-section">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:14px">📺 B站网课链接</span>
+            <input type="text" id="biliUrl" placeholder="粘贴B站视频链接" style="flex:1;min-width:200px;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none">
+            <button onclick="extractBili()" id="biliBtn" class="action-btn" style="background:#ff6b35">提取内容</button>
+        </div>
+        <div id="biliStatus" style="margin-top:8px;font-size:13px"></div>
+        <p style="margin-top:6px;font-size:12px;color:#999">💡 提示：视频有字幕才能提取完整内容，无字幕仅能提取标题和简介</p>
+        <p style="margin-top:6px;font-size:12px;color:#999">💡 提示：视频有字幕才能提取完整内容，无字幕仅能提取标题和简介</p>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('mindmap')">🧠 思维导图</div>
+        <div class="tab" onclick="switchTab('quiz')">📝 智能出题</div>
+        <div class="tab" onclick="switchTab('chat')">💬 AI 答疑</div>
+        <div class="tab" onclick="switchTab('example')">🎯 举一反三</div>
+    </div>
+    <div class="tab-content active" id="tab-mindmap">
+        <button class="action-btn" onclick="generateMindmap()">生成思维导图</button>
+        <div id="mindmapResult"></div>
+    </div>
+    <div class="tab-content" id="tab-quiz">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="action-btn" onclick="generateQuiz('选择题',5)">生成 5 道选择题</button>
+            <button class="action-btn accent" onclick="generateQuiz('填空题',5)">生成 5 道填空题</button>
+            <button class="action-btn" onclick="generateQuiz('简答题',3)" style="background:var(--success)">生成 3 道简答题</button>
+        </div>
+        <div id="quizResult"></div>
+    </div>
+    <div class="tab-content" id="tab-example">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+            <h3 style="margin:0 0 12px;font-size:16px">🎯 例题深度解析 + 举一反三</h3>
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px">粘贴老师给的例题，AI帮你吃透知识点，再举一反三生成变式题</p>
+            <textarea id="exampleInput" placeholder="粘贴例题内容..." style="width:100%;min-height:120px;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;margin-bottom:12px"></textarea>
+            <button onclick="analyzeExample()" class="action-btn" style="background:#8B4513">🎯 深度解析 + 举一反三</button>
+        </div>
+        <div id="exampleResult"></div>
+    </div>
+
+    <div class="tab-content" id="tab-chat">
+        <div class="chat-box" id="chatBox">
+            <div class="msg msg-ai"><div class="bubble">你好！我是 AI 导师 🎓<br>请先上传课件或粘贴 B 站链接，然后问我任何问题。</div></div>
+        </div>
+        <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button onclick="sendChat()">发送</button>
+        </div>
+    </div>
+</div>
+<script>
+const API_URL = "/api/ai";
+let fileContent = "";
+let chatHistory = [];
+
+// localStorage 恢复
+try {
+    var saved = localStorage.getItem('ai_content');
+    var savedName = localStorage.getItem('ai_name');
+    if (saved && saved.length > 10) {
+        fileContent = saved;
+        document.getElementById('fileInfo').style.display = 'flex';
+        document.getElementById('fileName').textContent = savedName || '上次的学习内容（已恢复）';
+    }
+} catch(e) {}
+
+function saveLocal() {
+    try {
+        if (fileContent.length > 10) {
+            localStorage.setItem('ai_content', fileContent);
+            var n = document.getElementById('fileName');
+            if (n) localStorage.setItem('ai_name', n.textContent);
+        }
+    } catch(e) {}
+}
+
+function getContent() { return fileContent; }
+
+function switchTab(name) {
+    var tabs = ['mindmap','quiz','chat','example'];
+    document.querySelectorAll('.tab').forEach(function(t, i) {
+        t.classList.toggle('active', tabs[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+async function handleFile(input) {
+    var file = input.files[0];
+    if (!file) return;
+    document.getElementById('fileInfo').style.display = 'flex';
+    document.getElementById('fileName').textContent = file.name;
+    if (file.type === 'application/pdf') {
+        try {
+            var buf = await file.arrayBuffer();
+            var pdf = await pdfjsLib.getDocument({data: buf}).promise;
+            var text = '';
+            for (var i = 1; i <= pdf.numPages; i++) {
+                var page = await pdf.getPage(i);
+                var tc = await page.getTextContent();
+                text += tc.items.map(function(x){return x.str}).join(' ') + '\n';
+            }
+            fileContent = text;
+        } catch(e) { fileContent = "[PDF解析失败]"; }
+    } else {
+        fileContent = await file.text();
+    }
+    saveLocal();
+}
+
+function removeFile() {
+    fileContent = "";
+    document.getElementById('fileInfo').style.display = 'none';
+    try { localStorage.removeItem('ai_content'); localStorage.removeItem('ai_name'); } catch(e) {}
+}
+
+async function callAI(messages, onChunk) {
+    var res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({tier:'fast', messages:messages, max_tokens:4000, temperature:0.7, stream:true})
+    });
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var full = '';
+    while (true) {
+        var r = await reader.read();
+        if (r.done) break;
+        var chunk = decoder.decode(r.value);
+        var lines = chunk.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line.startsWith('data:') && line !== 'data: [DONE]') {
+                try {
+                    var j = JSON.parse(line.slice(5).trim());
+                    var delta = j.choices[0].delta.content || '';
+                    full += delta;
+                    if (onChunk) onChunk(full);
+                } catch(e) {}
+            }
+        }
+    }
+    return full;
+}
+
+function renderMath() {
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise().catch(function(){});
+}
+
+function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') : ''; }
+
+function getBiliLink(keyword) {
+    return 'https://search.bilibili.com/all?keyword=' + encodeURIComponent(keyword);
+}
+
+async function extractBiliKeywords(text) {
+    try {
+        var res = await fetch(API_URL, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({tier:'fast', messages:[
+                {role:'system', content:'从以下学习内容中提取2-3个最适合在B站搜索的关键词，直接返回JSON数组，如["关键词1","关键词2"]，不要任何其他内容'},
+                {role:'user', content:text.slice(0,2000)}
+            ], max_tokens:200})
+        });
+        var data = await res.json();
+        var raw = data.choices[0].message.content.trim();
+        raw = raw.replace(/```json?\s*/gi,'').replace(/```/g,'').trim();
+        return JSON.parse(raw);
+    } catch(e) { return []; }
+}
+
+var featureChatHistories = {};
+
+function buildBottomUI(feature, againBtnText, againFn, keywords) {
+    var biliHtml = '';
+    if (keywords && keywords.length > 0) {
+        biliHtml = '<div style="margin:12px 0;padding:12px;background:#fff8f0;border-radius:8px;border:1px solid #f0e0d0"><b>B站视频推荐：</b><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
+        keywords.forEach(function(k) {
+            biliHtml += '<a href="' + getBiliLink(k) + '" target="_blank" style="padding:6px 14px;background:white;border:1px solid #ddd;border-radius:20px;text-decoration:none;color:#8B4513;font-size:13px">' + k + '</a>';
+        });
+        biliHtml += '</div></div>';
+    }
+    var html = biliHtml;
+    html += '<div style="margin-top:16px;display:flex;gap:10px;align-items:center">';
+    html += '<button onclick="' + againFn + '" style="padding:10px 24px;background:#D2691E;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">🔄 ' + againBtnText + '</button>';
+    html += '</div>';
+    html += '<div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">';
+    html += '<p style="color:#888;font-size:13px;margin-bottom:8px">对以上内容有疑问？直接问我：</p>';
+    html += '<div id="' + feature + 'FollowBox" style="max-height:300px;overflow-y:auto;display:none;margin-bottom:8px;padding:8px;background:#fafafa;border-radius:8px"></div>';
+    html += '<div style="display:flex;gap:8px">';
+    html += '<input type="text" id="' + feature + 'FollowInput" placeholder="比如：第三题的B选项为什么不对？" style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px" onkeydown="if(event.key==&quot;Enter&quot;)askFollowUp(&quot;'+feature+'&quot;)">';
+    html += '<button onclick="askFollowUp(&quot;' + feature + '&quot;)" style="padding:10px 18px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer">发送</button>';
+    html += '</div></div>';
+    return html;
+}
+
+async function askFollowUp(feature) {
+    var input = document.getElementById(feature + 'FollowInput');
+    var box = document.getElementById(feature + 'FollowBox');
+    var msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    box.style.display = 'block';
+    box.innerHTML += '<div style="text-align:right;margin:8px 0"><span style="background:var(--primary);color:white;padding:6px 12px;border-radius:10px;font-size:13px">' + esc(msg) + '</span></div>';
+    box.innerHTML += '<div id="followTyping" style="margin:8px 0"><span style="background:#f0efeb;padding:6px 12px;border-radius:10px;font-size:13px">思考中...</span></div>';
+    box.scrollTop = box.scrollHeight;
+
+    if (!featureChatHistories[feature]) featureChatHistories[feature] = [];
+    featureChatHistories[feature].push({role:'user', content: msg});
+    var content = getContent();
+    var messages = [{role:'system', content:'你是DeepSeek导师。基于学习材料回答追问。材料：' + (content||'').slice(0,4000)}].concat(featureChatHistories[feature].slice(-6));
+
+    var typing = document.getElementById('followTyping');
+    await callAI(messages, function(text) {
+        typing.innerHTML = '<span style="background:#f0efeb;padding:8px 12px;border-radius:10px;font-size:13px;display:inline-block;max-width:90%;line-height:1.7">' + text.replace(/\n/g,'<br>') + '</span>';
+        box.scrollTop = box.scrollHeight;
+    });
+    featureChatHistories[feature].push({role:'assistant', content: typing.textContent});
+    typing.removeAttribute('id');
+    renderMath();
+}
+
+// 思维导图
+async function generateMindmap() {
+    var content = getContent();
+    if (!content) { alert('请先上传课件或粘贴B站链接'); return; }
+    var result = document.getElementById('mindmapResult');
+    result.innerHTML = '<div class="loading">正在生成思维导图...</div>';
+    var fullMindmap = '';
+    await callAI([
+        {role:'system', content:'你是顶尖大学的教授。请生成思维导图：1.只提取3-5个核心概念 2.每个节点不超过15字 3.体现逻辑关系 4.公式用$...$ 5.考点加⭐易错加⚠️ 6.最多3层：■ ● ○ 7.最后总结本质'},
+        {role:'user', content:'提炼核心知识：\n\n' + content.slice(0, 8000)}
+    ], function(text) {
+        fullMindmap = text;
+        result.innerHTML = '<div class="result-card"><pre style="white-space:pre-wrap;font-family:var(--sans);line-height:2;font-size:14px">' + text + '</pre></div>';
+    });
+    renderMath();
+    var mKeywords = await extractBiliKeywords(fullMindmap);
+    result.innerHTML += buildBottomUI('mindmap', '重新生成思维导图', 'generateMindmap()', mKeywords);
+}
+
+// 互动出题
+async function generateQuiz(type, count) {
+    var content = getContent();
+    if (!content) { alert('请先上传课件或粘贴B站链接'); return; }
+    var result = document.getElementById('quizResult');
+    result.innerHTML = '<div class="loading">正在生成' + type + '...</div>';
+    var prompt = '';
+    if (type === '选择题') {
+        prompt = '根据以下内容出' + count + '道单选题。严格按JSON格式输出，不加任何其他内容：[{"q":"题目","a":"A. 选项","b":"B. 选项","c":"C. 选项","d":"D. 选项","ans":"A","explain":"详细解析"}]\n内容：' + content.slice(0,8000);
+    } else if (type === '填空题') {
+        prompt = '根据以下内容出' + count + '道填空题。严格按JSON格式输出：[{"q":"题目____","ans":"答案","explain":"解析"}]\n内容：' + content.slice(0,8000);
+    } else {
+        prompt = '根据以下内容出' + count + '道简答题。严格按JSON格式输出：[{"q":"题目","ans":"参考答案","explain":"解析"}]\n内容：' + content.slice(0,8000);
+    }
+    var fullText = '';
+    await callAI([
+        {role:'system', content:'你是大学教授和出题专家。公式用$...$。严格按JSON数组输出，不要加markdown标记。'},
+        {role:'user', content: prompt}
+    ], function(text) { fullText = text; result.innerHTML = '<div class="loading">生成中... ' + text.length + ' 字</div>'; });
+
+    var questions = [];
+    try {
+        var cleaned = fullText.trim().replace(/^```json?\s*/i,'').replace(/\s*```$/,'');
+        var s = cleaned.indexOf('['), e = cleaned.lastIndexOf(']');
+        if (s !== -1 && e !== -1) cleaned = cleaned.slice(s, e+1);
+        questions = JSON.parse(cleaned);
+    } catch(err) {
+        result.innerHTML = '<div class="result-card"><pre style="white-space:pre-wrap;line-height:2">' + fullText + '</pre></div>';
+        renderMath(); return;
+    }
+    if (!questions.length) { result.innerHTML = '<div style="color:red;padding:16px">未能生成题目，请重试</div>'; return; }
+
+    var html = '<div><h3 style="margin-bottom:16px">📝 ' + type + ' · ' + questions.length + '题</h3>';
+    html += '<div id="qProg" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">已答 0/' + questions.length + '</div>';
+    questions.forEach(function(item, idx) {
+        html += '<div id="qi-' + idx + '" style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;transition:border-color .3s">';
+        html += '<div style="display:flex;gap:10px;margin-bottom:14px"><span style="background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">' + (idx+1) + '</span>';
+        html += '<div style="font-size:15px;line-height:1.7;flex:1">' + esc(item.q) + '</div></div>';
+        if (type === '选择题') {
+            ['a','b','c','d'].forEach(function(opt) {
+                if (!item[opt]) return;
+                var L = opt.toUpperCase();
+                html += '<div class="qopt" data-idx="' + idx + '" data-opt="' + L + '" onclick="selOpt(this,' + idx + ',\'' + L + '\')" style="padding:12px 16px;margin:6px 0;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:10px;transition:all .2s">';
+                html += '<span class="oc" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:all .2s">' + L + '</span>';
+                html += '<span>' + esc(item[opt].replace(/^[A-D][.．、]\s*/,'')) + '</span></div>';
+            });
+        } else if (type === '填空题') {
+            html += '<input type="text" class="fi" data-idx="' + idx + '" placeholder="输入答案..." style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;box-sizing:border-box">';
+        } else {
+            html += '<textarea class="ei" data-idx="' + idx + '" placeholder="输入答案..." style="width:100%;min-height:80px;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical"></textarea>';
+        }
+        html += '<div id="fb-' + idx + '" style="display:none;margin-top:14px"></div></div>';
+    });
+    html += '<button onclick="submitQ()" id="submitBtn" style="width:100%;padding:16px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px">✅ 提交答案</button>';
+    html += '<div id="scoreArea" style="display:none;margin-top:16px"></div></div>';
+    result.innerHTML = html;
+    window._qd = questions; window._qt = type; window._qa = {}; window._qs = false;
+    window._quizCount = count; window._quizType = type;
+    renderMath();
+    var qKeywords = await extractBiliKeywords(fullText);
+    result.innerHTML += buildBottomUI('quiz', '再来' + count + '道' + type, "generateQuiz('" + type + "'," + count + ")", qKeywords);
+}
+
+function selOpt(el, idx, L) {
+    if (window._qs) return;
+    document.querySelectorAll('.qopt[data-idx="' + idx + '"]').forEach(function(o) {
+        o.style.background=''; o.style.borderColor='var(--border)';
+        o.querySelector('.oc').style.background=''; o.querySelector('.oc').style.borderColor='var(--border)'; o.querySelector('.oc').style.color='';
+    });
+    el.style.background='#e3f2fd'; el.style.borderColor='#1976d2';
+    el.querySelector('.oc').style.background='#1976d2'; el.querySelector('.oc').style.borderColor='#1976d2'; el.querySelector('.oc').style.color='white';
+    window._qa[idx] = L;
+    var cnt = Object.keys(window._qa).length;
+    document.getElementById('qProg').textContent = '已答 ' + cnt + '/' + window._qd.length;
+}
+
+function submitQ() {
+    if (window._qs) return;
+    var data = window._qd, type = window._qt, total = data.length, correct = 0;
+    if (type === '填空题') { document.querySelectorAll('.fi').forEach(function(i){ window._qa[i.dataset.idx] = i.value.trim(); }); }
+    if (type === '简答题') { document.querySelectorAll('.ei').forEach(function(i){ window._qa[i.dataset.idx] = i.value.trim(); }); }
+    window._qs = true;
+    document.getElementById('submitBtn').style.display = 'none';
+
+    data.forEach(function(item, idx) {
+        var fb = document.getElementById('fb-' + idx), qi = document.getElementById('qi-' + idx);
+        var ua = window._qa[idx] || '', ca = (item.ans||'').trim(), ok = false;
+        if (type === '选择题') {
+            ok = ua.toUpperCase() === ca.toUpperCase();
+            document.querySelectorAll('.qopt[data-idx="' + idx + '"]').forEach(function(o) {
+                if (o.dataset.opt === ca.toUpperCase()) { o.style.background='#e8f5e9'; o.style.borderColor='#43a047'; o.querySelector('.oc').style.background='#43a047'; o.querySelector('.oc').style.color='white'; }
+                else if (o.dataset.opt === ua && !ok) { o.style.background='#ffebee'; o.style.borderColor='#e53935'; o.querySelector('.oc').style.background='#e53935'; o.querySelector('.oc').style.color='white'; }
+            });
+        } else if (type === '填空题') {
+            ok = ua.replace(/\s/g,'').toLowerCase() === ca.replace(/\s/g,'').toLowerCase() && ua.length > 0;
+        } else { ok = null; }
+
+        if (ok === true) { correct++; qi.style.borderColor='#43a047'; fb.innerHTML='<div style="color:#2e7d32;font-weight:700">✅ 正确！</div>'; }
+        else if (ok === false) { qi.style.borderColor='#e53935'; fb.innerHTML='<div style="color:#c62828;font-weight:700">❌ 错误</div><div style="background:#e8f5e9;padding:10px;border-radius:8px;margin-top:8px"><b>正确答案：</b>' + esc(ca) + '</div>' + (ua ? '<div style="background:#ffebee;padding:10px;border-radius:8px;margin-top:6px"><b>你的答案：</b>' + esc(ua) + '</div>' : ''); }
+        else { qi.style.borderColor='#ff9800'; fb.innerHTML='<div style="color:#e65100;font-weight:700">📋 参考答案</div><div style="background:#fff8e1;padding:10px;border-radius:8px;margin-top:8px;white-space:pre-wrap">' + esc(ca) + '</div>'; }
+        if (item.explain) { fb.innerHTML += '<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--primary);font-weight:600">📖 查看解析</summary><div style="padding:12px 0;font-size:13px;line-height:1.8;white-space:pre-wrap">' + esc(item.explain) + '</div></details>'; }
+        fb.style.display = 'block';
+    });
+
+    if (type !== '简答题') {
+        var pct = Math.round(correct/total*100), color = pct>=80?'#2e7d32':pct>=60?'#e65100':'#c62828';
+        document.getElementById('scoreArea').innerHTML = '<div style="text-align:center;padding:24px;border:2px solid '+color+';border-radius:14px"><div style="font-size:28px;font-weight:900;color:'+color+'">'+correct+'/'+total+'</div><div style="color:var(--text-secondary);margin-top:4px">正确率 '+pct+'%</div></div>';
+        document.getElementById('scoreArea').style.display = 'block';
+    }
+    renderMath();
+}
+
+// AI 答疑
+async function sendChat() {
+    var input = document.getElementById('chatInput');
+    var msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    var box = document.getElementById('chatBox');
+    box.innerHTML += '<div class="msg msg-user"><div class="bubble">' + esc(msg) + '</div></div>';
+    box.innerHTML += '<div class="msg msg-ai" id="aiTyping"><div class="bubble">思考中...</div></div>';
+    box.scrollTop = box.scrollHeight;
+
+    var content = getContent();
+    var sysMsg = content ? '你是DeepSeek导师。基于以下学习材料回答问题：\n' + content.slice(0,6000) : '你是DeepSeek导师，帮助学生解答学习问题。';
+    chatHistory.push({role:'user', content: msg});
+    var messages = [{role:'system', content: sysMsg}].concat(chatHistory.slice(-10));
+
+    var aiEl = document.getElementById('aiTyping');
+    await callAI(messages, function(text) {
+        aiEl.querySelector('.bubble').innerHTML = text.replace(/\n/g,'<br>');
+        box.scrollTop = box.scrollHeight;
+    });
+    var finalText = aiEl.querySelector('.bubble').innerHTML;
+    chatHistory.push({role:'assistant', content: finalText});
+    aiEl.removeAttribute('id');
+    renderMath();
+}
+
+// B站提取
+async function extractBili() {
+    var url = document.getElementById('biliUrl').value.trim();
+    if (!url) { alert('请粘贴B站链接'); return; }
+    var btn = document.getElementById('biliBtn');
+    var status = document.getElementById('biliStatus');
+    btn.disabled = true; btn.textContent = '提取中...';
+    status.innerHTML = '<span style="color:#1976d2">正在获取视频信息...</span>';
+    try {
+        var res = await fetch('/api/bili_extract', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:url})});
+        var data = await res.json();
+        if (!res.ok) { status.innerHTML = '<span style="color:red">❌ ' + (data.error||'提取失败') + '</span>'; btn.disabled=false; btn.textContent='提取内容'; return; }
+        fileContent = data.content;
+        document.getElementById('fileInfo').style.display = 'flex';
+        document.getElementById('fileName').textContent = '📺 ' + data.title;
+        if (data.subtitle_url) {
+            status.innerHTML = '<span style="color:#1976d2">正在获取字幕...</span>';
+            try {
+                var sr = await fetch(data.subtitle_url);
+                if (sr.ok) {
+                    var sd = await sr.json();
+                    var body = sd.body || [];
+                    if (body.length > 0) {
+                        var subtitleText = body.map(function(x){return x.content||''}).join('\n');
+                        fileContent += '\n\n【视频字幕】\n' + subtitleText;
+                        document.getElementById('fileName').textContent = '📺 ' + data.title + ' (字幕' + body.length + '条)';
+                        status.innerHTML = '<span style="color:#2e7d32">✅ 已获取字幕，可以开始学习！</span>';
+                        saveLocal(); btn.disabled=false; btn.textContent='提取内容'; return;
+                    }
+                }
+            } catch(e) {}
+            status.innerHTML = '<span style="color:#ff9800">⚠️ 字幕获取失败，但已提取视频信息</span>';
+        } else if (data.has_subtitle) {
+            status.innerHTML = '<span style="color:#ff9800">⚠️ 字幕需要手动获取</span>';
+        } else {
+            status.innerHTML = '<span style="color:#2e7d32">✅ 已提取视频信息</span>';
+        }
+        saveLocal();
+    } catch(e) {
+        status.innerHTML = '<span style="color:red">❌ 网络错误：' + e.message + '</span>';
+    }
+    btn.disabled = false; btn.textContent = '提取内容';
+}
+</script>
+</body>
+</html>

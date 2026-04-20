@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ "我买到的" if role=="buyer" else "我卖出的" }} - 校园集市{% endblock %}
+{% block content %}
+<div style="max-width:700px;margin:30px auto;padding:0 15px">
+    <h2 style="margin-bottom:20px;color:#333">{{ "🛒 我买到的" if role=="buyer" else "💰 我卖出的" }}</h2>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+        <a href="{{ url_for('my_orders') }}" style="padding:8px 16px;border-radius:20px;text-decoration:none;font-size:14px;{{ 'background:#e74c3c;color:#fff' if role=='buyer' else 'background:#f0f0f0;color:#666' }}">我买到的</a>
+        <a href="{{ url_for('my_sales') }}" style="padding:8px 16px;border-radius:20px;text-decoration:none;font-size:14px;{{ 'background:#e74c3c;color:#fff' if role=='seller' else 'background:#f0f0f0;color:#666' }}">我卖出的</a>
+    </div>
+    {% if orders %}
+    {% for order in orders %}
+    <a href="{{ url_for('order_detail', order_id=order.id) }}" style="text-decoration:none;color:inherit">
+    <div style="background:#fff;border-radius:10px;padding:15px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.08);display:flex;gap:12px;align-items:center">
+        {% if order.item.images %}
+        <img src="{{ url_for('static', filename='uploads/' + order.item.images.split(',')[0]) }}" style="width:70px;height:70px;object-fit:cover;border-radius:8px">
+        {% endif %}
+        <div style="flex:1;min-width:0">
+            <h3 style="margin:0 0 5px 0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ order.item.title }}</h3>
+            <p style="margin:0;font-size:13px;color:#999">
+                {{ "卖家" if role=="buyer" else "买家" }}：{{ order.seller.username if role=="buyer" else order.buyer.username }}
+                · {{ order.created_at.strftime("%m-%d %H:%M") }}
+            </p>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+            {% set sc = {"待付款":"#f39c12","待发货":"#3498db","待收货":"#9b59b6","已完成":"#27ae60","已取消":"#999"} %}
+            <span style="color:{{ sc.get(order.status,'#333') }};font-size:13px;font-weight:600">{{ order.status }}</span>
+            <p style="margin:5px 0 0 0;color:#e74c3c;font-weight:700">¥{{ "%.2f"|format(order.buyer_price if role=="buyer" else order.seller_price) }}</p>
+        </div>
+    </div>
+    </a>
+    {% endfor %}
+    {% else %}
+    <div style="text-align:center;padding:60px 0;color:#999">
+        <p style="font-size:40px">📭</p>
+        <p>暂无订单</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

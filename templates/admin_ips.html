@@ -1,0 +1,24 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<h2>🛡️ IP 黑名单</h2>
+    <p style="color:#6b7280;font-size:13px;margin-bottom:16px">加入黑名单的IP将无法访问网站</p>
+    {% with messages = get_flashed_messages() %}{% if messages %}
+    {% for msg in messages %}<div style="background:#d1fae5;color:#065f46;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">{{ msg }}</div>{% endfor %}
+    {% endif %}{% endwith %}
+    <form method="post" class="frow">
+      <input type="text" name="ip" placeholder="例如：192.168.1.1" required style="flex:1">
+      <input type="text" name="reason" placeholder="封禁原因（可选）" style="flex:1">
+      <button>封禁</button>
+    </form>
+    <table class="ad-table">
+      <tr><th>IP地址</th><th>原因</th><th>时间</th><th>操作</th></tr>
+      {% for i in ips %}
+      <tr>
+        <td><code style="background:#fef2f2;color:#991b1b;padding:3px 8px;border-radius:4px">{{ i.ip }}</code></td>
+        <td>{{ i.reason or '-' }}</td>
+        <td style="color:#999">{{ i.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><form method="post" action="/admin/ip/{{ i.id }}/delete" style="display:inline"><button class="btn-sm">解封</button></form></td>
+      </tr>
+      {% else %}<tr><td colspan="4" class="empty">暂无封禁IP</td></tr>{% endfor %}
+    </table>
+{% endblock %}
