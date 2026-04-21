@@ -356,8 +356,8 @@ def consign():
         if not consign_cat:
             flash("请选择寄卖品类")
             return redirect(url_for("consign"))
-        fee = round(price * 0.3)
-        item = Item(title=f"[寄卖] {title}", description=f"{desc}\n\n---\n寄卖品类：{consign_cat}\n联系方式：{contact}\n手续费：{fee}元（30%）",
+        fee = 0
+        item = Item(title=f"[寄卖] {title}", description=f"{desc}\n\n---\n寄卖品类：{consign_cat}\n联系方式：{contact}",
                     price=price, buyer_price=price,
                     original_price=float(orig) if orig else None,
                     category="毕业寄卖", condition=cond,
