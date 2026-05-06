@@ -1,133 +1,327 @@
 {% extends "base.html" %}
-{% block title %}合肥大学 - 校园平台{% endblock %}
+
+{% block title %}合肥大学 · 校园集市{% endblock %}
+
 {% block extra_css %}
 <style>
-.home-hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:60px 20px 50px;text-align:center;position:relative;overflow:hidden}
-.home-hero::before{content:"";position:absolute;top:-80%;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 60%);pointer-events:none}
-.home-hero::after{content:"";position:absolute;bottom:-50%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(249,115,22,0.1) 0%,transparent 70%);pointer-events:none}
-.home-hero .badge{display:inline-block;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:18px;letter-spacing:0.15em;border:1px solid rgba(255,255,255,0.12);position:relative;z-index:1}
-.home-hero h1{font-family:var(--serif);font-size:56px;font-weight:900;background:linear-gradient(135deg,#fff 0%,#c5a55a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent;margin-bottom:14px;letter-spacing:-0.02em;position:relative;z-index:1;line-height:1.1}
-.home-hero .sub{color:rgba(255,255,255,0.7);font-size:15px;letter-spacing:0.05em;font-weight:400;position:relative;z-index:1}
-.home-hero .sub i{color:#c5a55a;margin:0 10px;font-style:normal}
+  .home-wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding:32px 16px 50px;
+  }
 
-.two-cards{max-width:1200px;margin:16px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.section-head{max-width:1200px;margin:0 auto;padding:28px 20px 8px;display:flex;align-items:center;gap:12px}
-.section-head h2{font-size:20px;font-weight:700;margin:0}
-.section-head .line{flex:1;height:1px;background:var(--border)}
-.items-grid{max-width:1200px;margin:0 auto;padding:0 20px 30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.item-card{text-decoration:none;color:inherit;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .2s}
-.item-card:hover{box-shadow:var(--shadow-lg)}
-.item-card .img-wrap{width:100%;aspect-ratio:1;background:#f3f4f6;overflow:hidden}
-.item-card .img-wrap img{width:100%;height:100%;object-fit:cover}
-.item-card .no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#d1d5db;font-size:42px}
-.item-card .info{padding:12px}
-.item-card .info h3{font-size:14px;font-weight:500;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.item-card .price{color:var(--danger);font-size:18px;font-weight:900}
-.item-card .original{color:var(--text-secondary);font-size:12px;text-decoration:line-through;margin-left:6px}
-.more-link{display:block;text-align:center;padding:16px;color:var(--text-secondary);text-decoration:none;font-size:14px}
-.more-link:hover{color:var(--text)}
-.mod-card{text-decoration:none;display:block;border-radius:14px;padding:28px 26px;color:#fff;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
-.mod-card:hover{transform:translateY(-3px)}
-.mod-card h2{font-size:20px;font-weight:800;margin:0 0 8px}
-.mod-card p{font-size:13px;color:rgba(255,255,255,0.85);margin:0 0 14px;line-height:1.6}
-.mod-card .tags{display:flex;gap:8px;flex-wrap:wrap}
-.mod-card .tags span{background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:6px;font-size:11px}
-.mod-card .arrow{text-align:right;margin-top:12px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7)}
-@media(max-width:768px){
-.two-cards{grid-template-columns:1fr !important}
-.home-hero{padding:42px 16px 36px}
-.home-hero h1{font-size:38px}
-.home-hero .badge{font-size:11px;padding:5px 14px}
-.mod-card{padding:22px 20px !important}
-.mod-card h2{font-size:18px !important}
-.items-grid{grid-template-columns:repeat(2,1fr) !important;gap:10px !important;padding:0 12px 20px !important}
-.section-head{padding:20px 12px 6px}
-}
-@media(max-width:400px){
-.home-hero h1{font-size:32px}
-.items-grid{gap:8px !important}
-.mod-card .tags span{font-size:10px;padding:3px 8px}
-}
+  .hero{
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:42px 28px;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(15,23,42,0.06);
+  }
+
+  .hero-badge{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    background:#ecfdf5;
+    color:#047857;
+    font-size:13px;
+    margin-bottom:14px;
+  }
+
+  .hero h1{
+    margin:0;
+    font-size:36px;
+    color:#111827;
+    letter-spacing:0.04em;
+  }
+
+  .hero .sub{
+    margin:14px auto 0;
+    max-width:680px;
+    color:#4b5563;
+    font-size:16px;
+    line-height:1.8;
+  }
+
+  .trust-note{
+    margin:18px auto 0;
+    max-width:720px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:#f9fafb;
+    color:#374151;
+    font-size:14px;
+    line-height:1.7;
+  }
+
+  .hero-actions{
+    margin-top:26px;
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .btn-main,
+  .btn-light{
+    display:inline-block;
+    padding:12px 22px;
+    border-radius:999px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:15px;
+  }
+
+  .btn-main{
+    background:#10b981;
+    color:#ffffff;
+  }
+
+  .btn-light{
+    background:#f3f4f6;
+    color:#111827;
+  }
+
+  .section-head{
+    margin:36px 0 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .section-head h2{
+    margin:0;
+    font-size:22px;
+    color:#111827;
+  }
+
+  .section-head a{
+    color:#059669;
+    text-decoration:none;
+    font-size:14px;
+  }
+
+  .quick-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+  }
+
+  .quick-card{
+    display:block;
+    padding:18px;
+    border-radius:16px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    text-decoration:none;
+    color:#111827;
+    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+  }
+
+  .quick-card strong{
+    display:block;
+    margin-bottom:6px;
+    font-size:16px;
+  }
+
+  .quick-card span{
+    color:#6b7280;
+    font-size:13px;
+    line-height:1.6;
+  }
+
+  .items-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:16px;
+  }
+
+  .item-card{
+    display:block;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    overflow:hidden;
+    text-decoration:none;
+    color:#111827;
+    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+  }
+
+  .item-img{
+    width:100%;
+    aspect-ratio:1/1;
+    background:#f3f4f6;
+    overflow:hidden;
+  }
+
+  .item-img img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .no-img{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9ca3af;
+    font-size:14px;
+  }
+
+  .item-info{
+    padding:12px;
+  }
+
+  .item-title{
+    margin:0 0 8px;
+    font-size:15px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .item-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+  }
+
+  .price{
+    color:#ef4444;
+    font-weight:700;
+    font-size:17px;
+  }
+
+  .tag{
+    color:#6b7280;
+    font-size:12px;
+  }
+
+  .empty{
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    padding:28px;
+    text-align:center;
+    color:#6b7280;
+  }
+
+  @media (max-width:768px){
+    .home-wrap{
+      padding:20px 14px 40px;
+    }
+
+    .hero{
+      padding:30px 18px;
+      border-radius:16px;
+    }
+
+    .hero h1{
+      font-size:28px;
+    }
+
+    .hero .sub{
+      font-size:15px;
+    }
+
+    .quick-grid{
+      grid-template-columns:repeat(2,1fr);
+    }
+  }
 </style>
 {% endblock %}
+
 {% block content %}
-<div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%) !important;padding:60px 20px 50px !important;text-align:center !important;position:relative;overflow:hidden;width:100% !important;display:block !important;margin:0 !important">
-    <div style="position:absolute;top:-300px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 60%);pointer-events:none;z-index:0"></div>
-    <div style="position:relative;z-index:1;max-width:800px;margin:0 auto;text-align:center">
-        <span style="display:inline-block;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:18px;letter-spacing:0.15em;border:1px solid rgba(255,255,255,0.12)">HEFEI UNIVERSITY</span>
-        <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:56px !important;font-weight:900 !important;background:linear-gradient(135deg,#fff 0%,#c5a55a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent !important;margin:0 0 14px 0 !important;letter-spacing:-0.02em;line-height:1.1;text-align:center !important">合肥大学</h1>
-        <p style="color:rgba(255,255,255,0.7) !important;font-size:15px !important;letter-spacing:0.05em;font-weight:400;margin:0 !important;text-align:center !important">校园学习<span style="color:#c5a55a;margin:0 10px">·</span>二手交易<span style="color:#c5a55a;margin:0 10px">·</span>找搭子</p>
-    </div>
-</div>
+<div class="home-wrap">
 
-<div style="max-width:1200px;margin:0 auto;padding:24px 20px 0">
-  <a href="{{ url_for('tutor') }}" class="mod-card" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:16px;padding:32px 36px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:-40px;right:-20px;width:200px;height:200px;background:rgba(255,255,255,0.03);border-radius:50%"></div>
-    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-      <div style="flex:1;min-width:280px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <span style="font-size:32px">🤖</span>
-          <h2 style="font-size:24px">DeepSeek 导师</h2>
-          <span style="background:rgba(255,165,0,0.25);color:#ffa500;font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600">HOT</span>
-        </div>
-        <p style="margin-bottom:16px">上传课件或粘贴B站网课链接，AI 帮你<b style="color:#ffa500">生成思维导图</b>、<b style="color:#4fc3f7">智能出题</b>、<b style="color:#81c784">答疑解惑</b>、<b style="color:#e57373">举一反三</b></p>
-        <div class="tags">
-          <span>📝 自动生成思维导图</span><span>📺 B站网课字幕提取</span><span>📊 错题本自动收集</span><span>🎯 个人学习数据面板</span>
-        </div>
+  <section class="hero">
+    <div class="hero-badge">合肥大学同学自己的校园平台</div>
+
+    <h1>校园集市</h1>
+
+    <p class="sub">
+      二手交易、毕业寄卖、AI 导师、找搭子，一个站点解决校园里的常用需求。
+    </p>
+
+    <div class="trust-note">
+      本网站由合肥大学学生项目团队开发，面向本校同学试运行。可放心浏览和发布，交易请线下当面确认。
+    </div>
+
+    <div class="hero-actions">
+      <a class="btn-main" href="{{ url_for('market') }}">进入集市</a>
+      <a class="btn-light" href="{{ url_for('publish') }}">发布商品</a>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>常用入口</h2>
+    </div>
+
+    <div class="quick-grid">
+      <a class="quick-card" href="{{ url_for('market') }}">
+        <strong>二手商城</strong>
+        <span>浏览教材、数码、生活用品等校内二手商品</span>
+      </a>
+
+      <a class="quick-card" href="{{ url_for('consign') }}">
+        <strong>毕业寄卖</strong>
+        <span>适合大件、高价值物品，先发布信息线下确认</span>
+      </a>
+
+      <a class="quick-card" href="{{ url_for('tutor') }}">
+        <strong>AI 导师</strong>
+        <span>学习答疑、简历修改、作业思路辅助</span>
+      </a>
+
+      <a class="quick-card" href="/buddy">
+        <strong>找搭子</strong>
+        <span>找饭搭子、运动搭子、学习搭子、拼车搭子</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>最新商品</h2>
+      <a href="{{ url_for('market') }}">查看更多</a>
+    </div>
+
+    {% if items %}
+      <div class="items-grid">
+        {% for item in items %}
+          <a class="item-card" href="{{ url_for('item_detail', item_id=item.id) }}">
+            <div class="item-img">
+              {% if item.images %}
+                <img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" alt="{{ item.title }}">
+              {% else %}
+                <div class="no-img">暂无图片</div>
+              {% endif %}
+            </div>
+
+            <div class="item-info">
+              <p class="item-title">{{ item.title }}</p>
+              <div class="item-meta">
+                <span class="price">¥{{ item.price }}</span>
+                <span class="tag">{{ item.category }}</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
       </div>
-      <div style="text-align:center;position:relative;z-index:1">
-        <div style="background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:14px;padding:16px 32px;font-size:16px;font-weight:700">开始学习 →</div>
+    {% else %}
+      <div class="empty">
+        还没有商品，欢迎发布第一件校园好物。
       </div>
-    </div>
-  </a>
-</div>
+    {% endif %}
+  </section>
 
-<div class="two-cards">
-  <a href="{{ url_for('market') }}" class="mod-card" style="background:linear-gradient(135deg,#ff5722,#ff9800)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <span style="font-size:28px">🛒</span>
-      <h2>二手商城</h2>
-    </div>
-    <p>买卖闲置物品，校园二手交易平台</p>
-    <div class="tags">
-      <span>📦 发布闲置</span><span>💰 低价好物</span><span>🔒 安全交易</span>
-    </div>
-    <div class="arrow">浏览商品 →</div>
-  </a>
-  <a href="/buddy" class="mod-card" style="background:linear-gradient(135deg,#00796b,#26a69a)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <span style="font-size:28px">🤝</span>
-      <h2>找搭子</h2>
-      <span style="background:rgba(255,255,255,0.25);font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600">NEW</span>
-    </div>
-    <p>找志同道合的伙伴，一起学习、运动、吃饭</p>
-    <div class="tags">
-      <span>📚 学习搭子</span><span>🏸 运动搭子</span><span>🍜 饭搭子</span>
-    </div>
-    <div class="arrow">去找搭子 →</div>
-  </a>
 </div>
-
-<div class="section-head">
-  <span style="font-size:22px">🛒</span>
-  <h2>最新闲置</h2>
-  <div class="line"></div>
-  <a href="{{ url_for('market') }}" style="font-size:13px;color:var(--text-secondary);text-decoration:none">查看全部 →</a>
-</div>
-<div class="items-grid">
-  {% for item in items %}
-  <a href="{{ url_for('item_detail', item_id=item.id) }}" class="item-card">
-    <div class="img-wrap">
-      {% if item.images %}<img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" loading="lazy">
-      {% else %}<div class="no-img">📦</div>{% endif %}
-    </div>
-    <div class="info">
-      <h3>{{ item.title }}</h3>
-      <span class="price">¥{{ "%.0f"|format(item.buyer_price) }}</span>
-      {% if item.original_price %}<span class="original">¥{{ "%.0f"|format(item.original_price) }}</span>{% endif %}
-    </div>
-  </a>
-  {% endfor %}
-</div>
-{% if items %}<a href="{{ url_for('market') }}" class="more-link">查看更多商品 →</a>{% endif %}
 {% endblock %}
