@@ -4,324 +4,488 @@
 
 {% block extra_css %}
 <style>
-  .home-wrap{
-    max-width:1120px;
-    margin:0 auto;
-    padding:32px 16px 50px;
+  * {
+    box-sizing: border-box;
   }
 
-  .hero{
-    background:#ffffff;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    padding:42px 28px;
-    text-align:center;
-    box-shadow:0 8px 24px rgba(15,23,42,0.06);
+  .home-page {
+    background: #f8fafc;
+    min-height: calc(100vh - 70px);
   }
 
-  .hero-badge{
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:999px;
-    background:#ecfdf5;
-    color:#047857;
-    font-size:13px;
-    margin-bottom:14px;
+  .home-wrap {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 32px 16px 56px;
   }
 
-  .hero h1{
-    margin:0;
-    font-size:36px;
-    color:#111827;
-    letter-spacing:0.04em;
+  .hero {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 46px 28px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
   }
 
-  .hero .sub{
-    margin:14px auto 0;
-    max-width:680px;
-    color:#4b5563;
-    font-size:16px;
-    line-height:1.8;
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 13px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
   }
 
-  .trust-note{
-    margin:18px auto 0;
-    max-width:720px;
-    padding:12px 14px;
-    border-radius:12px;
-    background:#f9fafb;
-    color:#374151;
-    font-size:14px;
-    line-height:1.7;
+  .hero h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 38px;
+    line-height: 1.25;
+    letter-spacing: 0.06em;
   }
 
-  .hero-actions{
-    margin-top:26px;
-    display:flex;
-    justify-content:center;
-    gap:12px;
-    flex-wrap:wrap;
+  .hero-sub {
+    max-width: 700px;
+    margin: 16px auto 0;
+    color: #4b5563;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  .trust-note {
+    max-width: 760px;
+    margin: 20px auto 0;
+    padding: 13px 16px;
+    border-radius: 14px;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .btn-main,
-  .btn-light{
-    display:inline-block;
-    padding:12px 22px;
-    border-radius:999px;
-    text-decoration:none;
-    font-weight:600;
-    font-size:15px;
+  .btn-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    border: 1px solid transparent;
   }
 
-  .btn-main{
-    background:#10b981;
-    color:#ffffff;
+  .btn-main {
+    background: #10b981;
+    color: #ffffff;
   }
 
-  .btn-light{
-    background:#f3f4f6;
-    color:#111827;
+  .btn-light {
+    background: #f3f4f6;
+    color: #111827;
   }
 
-  .section-head{
-    margin:36px 0 16px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
+  .section-head {
+    margin: 38px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
-  .section-head h2{
-    margin:0;
-    font-size:22px;
-    color:#111827;
+  .section-head h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 22px;
+    line-height: 1.3;
   }
 
-  .section-head a{
-    color:#059669;
-    text-decoration:none;
-    font-size:14px;
+  .section-head a {
+    color: #059669;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
-  .quick-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:14px;
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
   }
 
-  .quick-card{
-    display:block;
-    padding:18px;
-    border-radius:16px;
-    background:#ffffff;
-    border:1px solid #e5e7eb;
-    text-decoration:none;
-    color:#111827;
-    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+  .quick-card {
+    display: block;
+    min-height: 118px;
+    padding: 18px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+    color: #111827;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   }
 
-  .quick-card strong{
-    display:block;
-    margin-bottom:6px;
-    font-size:16px;
+  .quick-card strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    line-height: 1.4;
   }
 
-  .quick-card span{
-    color:#6b7280;
-    font-size:13px;
-    line-height:1.6;
+  .quick-card span {
+    display: block;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.7;
   }
 
-  .items-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
-    gap:16px;
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
   }
 
-  .item-card{
-    display:block;
-    background:#ffffff;
-    border:1px solid #e5e7eb;
-    border-radius:16px;
-    overflow:hidden;
-    text-decoration:none;
-    color:#111827;
-    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+  .item-card {
+    display: block;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+    color: #111827;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   }
 
-  .item-img{
-    width:100%;
-    aspect-ratio:1/1;
-    background:#f3f4f6;
-    overflow:hidden;
+  .item-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #f3f4f6;
+    overflow: hidden;
   }
 
-  .item-img img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
+  .item-img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
-  .no-img{
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#9ca3af;
-    font-size:14px;
+  .no-img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 14px;
   }
 
-  .item-info{
-    padding:12px;
+  .item-info {
+    padding: 12px;
   }
 
-  .item-title{
-    margin:0 0 8px;
-    font-size:15px;
-    font-weight:600;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+  .item-title {
+    margin: 0 0 8px;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .item-meta{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:8px;
+  .item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
-  .price{
-    color:#ef4444;
-    font-weight:700;
-    font-size:17px;
+  .price {
+    color: #ef4444;
+    font-size: 17px;
+    font-weight: 800;
   }
 
-  .tag{
-    color:#6b7280;
-    font-size:12px;
+  .tag {
+    color: #6b7280;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
-  .empty{
-    background:#ffffff;
-    border:1px solid #e5e7eb;
-    border-radius:16px;
-    padding:28px;
-    text-align:center;
-    color:#6b7280;
+  .empty {
+    padding: 30px 18px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    text-align: center;
+    font-size: 14px;
   }
 
-  @media (max-width:768px){
-    .home-wrap{
-      padding:20px 14px 40px;
+  @media (max-width: 1024px) {
+    .home-wrap {
+      max-width: 900px;
+      padding: 26px 16px 44px;
     }
 
-    .hero{
-      padding:30px 18px;
-      border-radius:16px;
+    .hero {
+      padding: 38px 24px;
     }
 
-    .hero h1{
-      font-size:28px;
+    .hero h1 {
+      font-size: 34px;
     }
 
-    .hero .sub{
-      font-size:15px;
+    .quick-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
     }
 
-    .quick-grid{
-      grid-template-columns:repeat(2,1fr);
+    .items-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .home-wrap {
+      padding: 18px 12px 36px;
+    }
+
+    .hero {
+      padding: 28px 16px;
+      border-radius: 16px;
+    }
+
+    .hero-badge {
+      padding: 5px 10px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .hero-sub {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .trust-note {
+      margin-top: 15px;
+      padding: 11px 12px;
+      font-size: 13px;
+      line-height: 1.75;
+      border-radius: 12px;
+    }
+
+    .hero-actions {
+      margin-top: 22px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .btn-main,
+    .btn-light {
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 18px;
+      font-size: 15px;
+    }
+
+    .section-head {
+      margin: 30px 0 14px;
+    }
+
+    .section-head h2 {
+      font-size: 20px;
+    }
+
+    .quick-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .quick-card {
+      min-height: auto;
+      padding: 16px;
+      border-radius: 14px;
+    }
+
+    .quick-card strong {
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .quick-card span {
+      font-size: 13px;
+    }
+
+    .items-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .item-info {
+      padding: 10px;
+    }
+
+    .item-title {
+      font-size: 14px;
+    }
+
+    .price {
+      font-size: 16px;
+    }
+
+    .tag {
+      font-size: 11px;
+    }
+
+    .empty {
+      padding: 24px 14px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .home-wrap {
+      padding: 14px 10px 32px;
+    }
+
+    .hero {
+      padding: 24px 14px;
+      border-radius: 15px;
+    }
+
+    .hero h1 {
+      font-size: 25px;
+    }
+
+    .hero-sub {
+      font-size: 13px;
+    }
+
+    .trust-note {
+      font-size: 12px;
+    }
+
+    .section-head {
+      align-items: flex-start;
+    }
+
+    .items-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="home-wrap">
+<div class="home-page">
+  <main class="home-wrap">
 
-  <section class="hero">
-    <div class="hero-badge">合肥大学同学自己的校园平台</div>
+    <section class="hero">
+      <div class="hero-badge">合肥大学同学自己的校园平台</div>
 
-    <h1>校园集市</h1>
+      <h1>校园集市</h1>
 
-    <p class="sub">
-      二手交易、毕业寄卖、AI 导师、找搭子，一个站点解决校园里的常用需求。
-    </p>
+      <p class="hero-sub">
+        二手交易、毕业寄卖、AI 导师、找搭子，一个站点解决校园里的常用需求。
+      </p>
 
-    <div class="trust-note">
-      本网站由合肥大学学生项目团队开发，面向本校同学试运行。可放心浏览和发布，交易请线下当面确认。
-    </div>
+      <div class="trust-note">
+        本网站由合肥大学学生项目团队开发，面向本校同学试运行。可放心浏览和发布，交易请线下当面确认。
+      </div>
 
-    <div class="hero-actions">
-      <a class="btn-main" href="{{ url_for('market') }}">进入集市</a>
-      <a class="btn-light" href="{{ url_for('publish') }}">发布商品</a>
-    </div>
-  </section>
+      <div class="hero-actions">
+        <a class="btn-main" href="{{ url_for('market') }}">进入集市</a>
+        <a class="btn-light" href="{{ url_for('publish') }}">发布商品</a>
+      </div>
+    </section>
 
-  <section>
-    <div class="section-head">
-      <h2>常用入口</h2>
-    </div>
+    <section>
+      <div class="section-head">
+        <h2>常用入口</h2>
+      </div>
 
-    <div class="quick-grid">
-      <a class="quick-card" href="{{ url_for('market') }}">
-        <strong>二手商城</strong>
-        <span>浏览教材、数码、生活用品等校内二手商品</span>
-      </a>
+      <div class="quick-grid">
+        <a class="quick-card" href="{{ url_for('market') }}">
+          <strong>二手商城</strong>
+          <span>浏览教材、数码、生活用品等校内二手商品</span>
+        </a>
 
-      <a class="quick-card" href="{{ url_for('consign') }}">
-        <strong>毕业寄卖</strong>
-        <span>适合大件、高价值物品，先发布信息线下确认</span>
-      </a>
+        <a class="quick-card" href="{{ url_for('consign') }}">
+          <strong>毕业寄卖</strong>
+          <span>适合大件、高价值物品，先发布信息线下确认</span>
+        </a>
 
-      <a class="quick-card" href="{{ url_for('tutor') }}">
-        <strong>AI 导师</strong>
-        <span>学习答疑、简历修改、作业思路辅助</span>
-      </a>
+        <a class="quick-card" href="{{ url_for('tutor') }}">
+          <strong>AI 导师</strong>
+          <span>学习答疑、简历修改、作业思路辅助</span>
+        </a>
 
-      <a class="quick-card" href="/buddy">
-        <strong>找搭子</strong>
-        <span>找饭搭子、运动搭子、学习搭子、拼车搭子</span>
-      </a>
-    </div>
-  </section>
+        <a class="quick-card" href="/buddy">
+          <strong>找搭子</strong>
+          <span>找饭搭子、运动搭子、学习搭子、拼车搭子</span>
+        </a>
+      </div>
+    </section>
 
-  <section>
-    <div class="section-head">
-      <h2>最新商品</h2>
-      <a href="{{ url_for('market') }}">查看更多</a>
-    </div>
+    <section>
+      <div class="section-head">
+        <h2>最新商品</h2>
+        <a href="{{ url_for('market') }}">查看更多</a>
+      </div>
 
-    {% if items %}
-      <div class="items-grid">
-        {% for item in items %}
-          <a class="item-card" href="{{ url_for('item_detail', item_id=item.id) }}">
-            <div class="item-img">
-              {% if item.images %}
-                <img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" alt="{{ item.title }}">
-              {% else %}
-                <div class="no-img">暂无图片</div>
-              {% endif %}
-            </div>
-
-            <div class="item-info">
-              <p class="item-title">{{ item.title }}</p>
-              <div class="item-meta">
-                <span class="price">¥{{ item.price }}</span>
-                <span class="tag">{{ item.category }}</span>
+      {% if items %}
+        <div class="items-grid">
+          {% for item in items %}
+            <a class="item-card" href="{{ url_for('item_detail', item_id=item.id) }}">
+              <div class="item-img">
+                {% if item.images %}
+                  <img src="{{ url_for('static', filename='uploads/' + item.images.split(',')[0]) }}" alt="{{ item.title }}">
+                {% else %}
+                  <div class="no-img">暂无图片</div>
+                {% endif %}
               </div>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty">
-        还没有商品，欢迎发布第一件校园好物。
-      </div>
-    {% endif %}
-  </section>
 
+              <div class="item-info">
+                <p class="item-title">{{ item.title }}</p>
+                <div class="item-meta">
+                  <span class="price">¥{{ item.price }}</span>
+                  <span class="tag">{{ item.category }}</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">
+          还没有商品，欢迎发布第一件校园好物。
+        </div>
+      {% endif %}
+    </section>
+
+  </main>
 </div>
 {% endblock %}
