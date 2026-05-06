@@ -91,53 +91,43 @@
     color:#6b7280;
 }
 
-.model-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:12px;
-}
-
-.model-card{
-    border:1.5px solid #e5e7eb;
-    background:#fff;
-    border-radius:14px;
-    padding:16px;
-    cursor:pointer;
-    transition:all .2s;
-}
-
-.model-card:hover{
-    border-color:#10b981;
-    transform:translateY(-1px);
-}
-
-.model-card.active{
-    border-color:#10b981;
+.single-model-card{
+    border:1.5px solid #bbf7d0;
     background:#ecfdf5;
+    border-radius:16px;
+    padding:18px;
 }
 
-.model-card strong{
+.single-model-card strong{
     display:block;
-    font-size:15px;
-    margin-bottom:6px;
-    color:#111827;
+    color:#065f46;
+    font-size:18px;
+    margin-bottom:8px;
 }
 
-.model-card p{
+.single-model-card p{
     margin:0;
-    color:#6b7280;
-    font-size:13px;
-    line-height:1.6;
+    color:#047857;
+    font-size:14px;
+    line-height:1.7;
 }
 
-.badge{
-    display:inline-block;
-    margin-left:6px;
-    padding:2px 6px;
+.model-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+}
+
+.model-tags span{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 10px;
     border-radius:999px;
-    background:#dbeafe;
-    color:#1d4ed8;
-    font-size:10px;
+    background:#fff;
+    color:#059669;
+    border:1px solid #bbf7d0;
+    font-size:12px;
     font-weight:700;
 }
 
@@ -323,7 +313,6 @@
 }
 
 @media(max-width:900px){
-    .model-grid,
     .tool-grid{
         grid-template-columns:1fr;
     }
@@ -349,6 +338,11 @@
     .panel{
         padding:15px;
         border-radius:16px;
+    }
+
+    .panel-title{
+        flex-direction:column;
+        align-items:flex-start;
     }
 
     .login-tip{
@@ -394,32 +388,29 @@
         {% if not current_user.is_authenticated %}
         <div class="login-tip">
             <div>
-                <strong>体验模式：</strong>游客每日可免费使用 3 次。登录后可使用更多功能。
+                <strong>试运行模式：</strong>AI 导师目前面向合肥大学同学免费开放。登录后体验更完整。
             </div>
-            <a href="{{ url_for('login') }}">登录解锁</a>
+            <a href="{{ url_for('login') }}">登录使用</a>
         </div>
         {% endif %}
 
         <section class="panel">
             <div class="panel-title">
-                <h2>选择你的 AI 导师</h2>
-                <span>之后会统一切换为 DeepSeek 模型</span>
+                <h2>当前 AI 模型</h2>
+                <span>市场推广期，暂不区分付费模型</span>
             </div>
 
-            <div class="model-grid">
-                <div class="model-card" data-tier="top" onclick="selectModel('top', this)">
-                    <strong>顶级导师 <span class="badge">VIP</span></strong>
-                    <p>适合复杂题目、代码、论文、竞赛题和深入推理。</p>
-                </div>
+            <div class="single-model-card">
+                <strong>DeepSeek AI 导师</strong>
+                <p>
+                    当前统一使用 DeepSeek 模型，适合学习答疑、资料总结、题目讲解、练习题生成和思维导图整理。
+                </p>
 
-                <div class="model-card active" data-tier="smart" onclick="selectModel('smart', this)">
-                    <strong>学霸导师 <span class="badge">默认</span></strong>
-                    <p>适合日常学习、作业思路、文本总结和复习。</p>
-                </div>
-
-                <div class="model-card" data-tier="fast" onclick="selectModel('fast', this)">
-                    <strong>快速导师</strong>
-                    <p>适合简单问答、快速解释和轻量对话。</p>
+                <div class="model-tags">
+                    <span>免费试运行</span>
+                    <span>学习答疑</span>
+                    <span>资料总结</span>
+                    <span>练习出题</span>
                 </div>
             </div>
         </section>
@@ -469,12 +460,12 @@
         <section class="panel">
             <div class="panel-title">
                 <h2>和 AI 导师对话</h2>
-                <span id="currentModelText">当前：学霸导师</span>
+                <span id="currentModelText">当前：DeepSeek AI 导师</span>
             </div>
 
             <div class="chat-box" id="chatBox">
                 <div class="msg ai">
-                    <div class="bubble">你好，我是你的 AI 导师。你可以把题目、课件内容、复习资料发给我，我会帮你整理思路、讲解知识点或生成练习题。</div>
+                    <div class="bubble">你好，我是你的 DeepSeek AI 导师。你可以把题目、课件内容、复习资料发给我，我会帮你整理思路、讲解知识点或生成练习题。</div>
                 </div>
             </div>
 
@@ -495,7 +486,8 @@
 </div>
 
 <script>
-let selectedTier = 'smart';
+let selectedTier = 'standard';
+
 let messages = [
     {
         role: 'system',
@@ -504,22 +496,6 @@ let messages = [
 ];
 
 let uploadedText = '';
-
-function selectModel(tier, el){
-    selectedTier = tier;
-
-    document.querySelectorAll('.model-card').forEach(function(card){
-        card.classList.remove('active');
-    });
-
-    el.classList.add('active');
-
-    var name = '学霸导师';
-    if(tier === 'top') name = '顶级导师';
-    if(tier === 'fast') name = '快速导师';
-
-    document.getElementById('currentModelText').textContent = '当前：' + name;
-}
 
 function appendMessage(role, text){
     var box = document.getElementById('chatBox');
@@ -572,7 +548,7 @@ function sendMessage(){
         },
         body: JSON.stringify({
             tier: selectedTier,
-            task: selectedTier === 'fast' ? 'default' : 'chat',
+            task: 'chat',
             messages: messages,
             max_tokens: 3000,
             temperature: 0.7
