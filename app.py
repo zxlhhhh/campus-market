@@ -245,44 +245,62 @@ def market():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         student_id = request.form.get("student_id", "").strip()
         password = request.form.get("password", "")
         campus = request.form.get("campus", "").strip()
+
         if not username or not student_id or not password:
             flash("请填写完整信息")
             return redirect(url_for("register"))
+
         if not is_valid_student_id(student_id):
             flash("学号格式不正确（应为11位数字，如24301201005）")
             return redirect(url_for("register"))
+
         if len(password) < 6:
             flash("密码至少6位")
             return redirect(url_for("register"))
+
         if User.query.filter_by(username=username).first():
             flash("用户名已存在")
             return redirect(url_for("register"))
+
         if User.query.filter_by(student_id=student_id).first():
-            flash("该学号已注册")
-            return redirect(url_for("register"))
+            flash("该学号已注册，请直接登录")
+            return redirect(url_for("login"))
+
         # 生成唯一邀请码
         import string, random
+
         def gen_invite_code():
             while True:
                 code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                 if not User.query.filter_by(invite_code=code).first():
                     return code
 
-        user = User(username=username, student_id=student_id, campus=campus, invite_code=gen_invite_code(), top_quota=5)
+        user = User(
+            username=username,
+            student_id=student_id,
+            campus=campus,
+            invite_code=gen_invite_code(),
+            top_quota=5
+        )
         user.set_password(password)
 
         # 处理邀请码
         invite_code_input = request.form.get("invite_code", "").strip().upper()
+
         if invite_code_input:
             inviter = User.query.filter_by(invite_code=invite_code_input).first()
+
             if inviter:
                 user.invited_by = inviter.id
-                user.top_quota = 10  # 被邀请人 5 基础 + 5 奖励
+                user.top_quota = 10
                 inviter.top_quota = (inviter.top_quota or 0) + 3
                 inviter.invite_count = (inviter.invite_count or 0) + 1
             else:
@@ -290,10 +308,16 @@ def register():
 
         db.session.add(user)
         db.session.commit()
-        login_user(user)
-        flash("注册成功！" + ("通过邀请码注册，已获得 10 次顶级模型额度 🎁" if invite_code_input and user.invited_by else "已获得 5 次顶级模型体验额度 🎁"))
+
+        # 注册成功后默认记住登录状态 30 天
+        login_user(user, remember=True, duration=timedelta(days=30))
+        session.permanent = True
+
+        flash("注册成功！")
         return redirect(url_for("index"))
+
     return render_template("register.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -304,7 +328,7 @@ def login():
         student_id = request.form.get("student_id", "").strip()
         password = request.form.get("password", "")
 
-        # 如果登录页暂时还没有 remember 字段，也默认记住登录状态
+        # 登录页有 remember 字段就按用户选择；没有的话默认记住登录状态
         remember = request.form.get("remember", "on") == "on"
 
         user = User.query.filter_by(student_id=student_id).first()
@@ -325,6 +349,7 @@ def login():
         return redirect(url_for("login"))
 
     return render_template("login.html")
+
 
 @app.route("/logout")
 @login_required
