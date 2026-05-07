@@ -1,17 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 import os, uuid, re, math
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "campus-market-secret-key-2024")
+
+# 登录保持配置：同一台手机/电脑登录后，默认 30 天内免登录
+app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+app.config["REMEMBER_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
+app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+
 db_path = os.path.join(os.path.dirname(__file__), "instance", "market.db")
 os.makedirs(os.path.dirname(db_path), exist_ok=True)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", f"sqlite:///{db_path}")
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "static", "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -285,16 +297,33 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         student_id = request.form.get("student_id", "").strip()
         password = request.form.get("password", "")
+
+        # 如果登录页暂时还没有 remember 字段，也默认记住登录状态
+        remember = request.form.get("remember", "on") == "on"
+
         user = User.query.filter_by(student_id=student_id).first()
+
         if user and user.check_password(password):
-            login_user(user)
+            if getattr(user, "is_banned", False):
+                flash("该账号已被限制登录")
+                return redirect(url_for("login"))
+
+            login_user(user, remember=remember, duration=timedelta(days=30))
+            session.permanent = remember
+
             flash("登录成功！")
-            return redirect(url_for("index"))
+            next_url = request.args.get("next")
+            return redirect(next_url or url_for("index"))
+
         flash("学号或密码错误")
         return redirect(url_for("login"))
+
     return render_template("login.html")
 
 @app.route("/logout")
