@@ -101,4 +101,263 @@ function removeFile(index) {
     renderPreviews();
 }
 </script>
+<style>
+.publish-loading-mask{
+    position:fixed;
+    inset:0;
+    background:rgba(255,255,255,0.86);
+    z-index:99999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.publish-loading-card{
+    width:100%;
+    max-width:320px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:26px 22px;
+    text-align:center;
+    box-shadow:0 14px 40px rgba(15,23,42,0.16);
+}
+
+.publish-loading-icon{
+    width:42px;
+    height:42px;
+    border:4px solid #e5e7eb;
+    border-top-color:#10b981;
+    border-radius:50%;
+    margin:0 auto 14px;
+    animation:publishSpin .8s linear infinite;
+}
+
+.publish-loading-title{
+    font-size:17px;
+    font-weight:800;
+    color:#111827;
+    margin-bottom:6px;
+}
+
+.publish-loading-text{
+    font-size:13px;
+    color:#6b7280;
+    line-height:1.7;
+}
+
+@keyframes publishSpin{
+    to{transform:rotate(360deg)}
+}
+
+@media(max-width:768px){
+    button[type="submit"],
+    input[type="submit"]{
+        min-height:48px;
+        font-size:16px !important;
+    }
+}
+</style>
+
+<div class="publish-loading-mask" id="publishLoadingMask">
+    <div class="publish-loading-card">
+        <div class="publish-loading-icon"></div>
+        <div class="publish-loading-title">正在发布商品</div>
+        <div class="publish-loading-text">图片正在上传，请不要退出页面。手机网络较慢时可能需要几秒钟。</div>
+    </div>
+</div>
+
+<script>
+(function(){
+    if(window.__publishOptimizerLoaded) return;
+    window.__publishOptimizerLoaded = true;
+
+    function findPublishForm(){
+        var forms = Array.from(document.querySelectorAll('form'));
+        for(var i = 0; i < forms.length; i++){
+            var f = forms[i];
+            if(f.querySelector('input[type="file"]')){
+                return f;
+            }
+        }
+        return document.querySelector('form');
+    }
+
+    function findSubmitButton(form){
+        if(!form) return null;
+
+        var buttons = Array.from(form.querySelectorAll('button, input[type="submit"]'));
+
+        for(var i = 0; i < buttons.length; i++){
+            var text = (buttons[i].innerText || buttons[i].value || '').trim();
+            if(text.indexOf('发布') !== -1 || text.indexOf('提交') !== -1){
+                return buttons[i];
+            }
+        }
+
+        return buttons[buttons.length - 1] || null;
+    }
+
+    function showLoading(){
+        var mask = document.getElementById('publishLoadingMask');
+        if(mask){
+            mask.style.display = 'flex';
+        }
+    }
+
+    function setButtonLoading(btn){
+        if(!btn) return;
+
+        btn.dataset.oldText = btn.innerText || btn.value || '';
+
+        if(btn.tagName.toLowerCase() === 'input'){
+            btn.value = '正在发布...';
+        }else{
+            btn.innerText = '正在发布...';
+        }
+
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        btn.style.cursor = 'not-allowed';
+    }
+
+    function canvasToBlob(canvas, type, quality){
+        return new Promise(function(resolve){
+            canvas.toBlob(function(blob){
+                resolve(blob);
+            }, type, quality);
+        });
+    }
+
+    function readImage(file){
+        return new Promise(function(resolve, reject){
+            var img = new Image();
+            var url = URL.createObjectURL(file);
+
+            img.onload = function(){
+                URL.revokeObjectURL(url);
+                resolve(img);
+            };
+
+            img.onerror = function(){
+                URL.revokeObjectURL(url);
+                reject(new Error('图片读取失败'));
+            };
+
+            img.src = url;
+        });
+    }
+
+    async function compressImage(file){
+        if(!file || !file.type || file.type.indexOf('image/') !== 0){
+            return file;
+        }
+
+        if(file.type === 'image/gif'){
+            return file;
+        }
+
+        if(file.size < 900 * 1024){
+            return file;
+        }
+
+        try{
+            var img = await readImage(file);
+
+            var maxSide = 1600;
+            var width = img.width;
+            var height = img.height;
+
+            if(width > maxSide || height > maxSide){
+                if(width > height){
+                    height = Math.round(height * maxSide / width);
+                    width = maxSide;
+                }else{
+                    width = Math.round(width * maxSide / height);
+                    height = maxSide;
+                }
+            }
+
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            var blob = await canvasToBlob(canvas, 'image/jpeg', 0.78);
+
+            if(!blob){
+                return file;
+            }
+
+            if(blob.size >= file.size){
+                return file;
+            }
+
+            var newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+
+            return new File([blob], newName, {
+                type:'image/jpeg',
+                lastModified:Date.now()
+            });
+        }catch(e){
+            return file;
+        }
+    }
+
+    async function compressFileInputs(form){
+        if(!window.DataTransfer){
+            return;
+        }
+
+        var inputs = Array.from(form.querySelectorAll('input[type="file"]'));
+
+        for(var i = 0; i < inputs.length; i++){
+            var input = inputs[i];
+
+            if(!input.files || input.files.length === 0){
+                continue;
+            }
+
+            var dt = new DataTransfer();
+
+            for(var j = 0; j < input.files.length; j++){
+                var file = input.files[j];
+                var compressed = await compressImage(file);
+                dt.items.add(compressed);
+            }
+
+            input.files = dt.files;
+        }
+    }
+
+    var form = findPublishForm();
+
+    if(!form){
+        return;
+    }
+
+    form.addEventListener('submit', async function(e){
+        if(form.dataset.publishSubmitting === '1'){
+            return;
+        }
+
+        e.preventDefault();
+
+        var submitBtn = findSubmitButton(form);
+
+        showLoading();
+        setButtonLoading(submitBtn);
+
+        try{
+            await compressFileInputs(form);
+        }catch(err){}
+
+        form.dataset.publishSubmitting = '1';
+        HTMLFormElement.prototype.submit.call(form);
+    });
+})();
+</script>
 {% endblock %}
